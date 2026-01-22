@@ -16,6 +16,15 @@ export const API_ENDPOINTS = {
     detail: (id) => `${API_BASE_URL}/devices/${id}/`,
     certificate: (id) => `${API_BASE_URL}/devices/${id}/certificate/`,
   },
+  
+  // Participant's own devices (requires authentication)
+  participantDevices: {
+    list: `${API_BASE_URL}/devices/participant/`,
+    detail: (id) => `${API_BASE_URL}/devices/participant/${id}/`,
+    generateCertificate: (id) => `${API_BASE_URL}/devices/participant/${id}/generate-certificate/`,
+    downloadCertificate: (id) => `${API_BASE_URL}/devices/participant/${id}/download-certificate/`,
+    downloadPrivateKey: (id) => `${API_BASE_URL}/devices/participant/${id}/download-private-key/`,
+  },
 
   dashboard: {
     stats: `${API_BASE_URL}/dashboard/stats/`,
@@ -25,6 +34,7 @@ export const API_ENDPOINTS = {
     list: `${API_BASE_URL}/messages/`,
   },
 };
+
 
 // Centralized HTTP status codes for consistent error handling
 export const HTTP_STATUS = {

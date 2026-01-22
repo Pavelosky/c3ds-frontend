@@ -40,6 +40,23 @@ export const devicesAPI = {
   }),
 };
 
+// Participant's own devices API (requires authentication)
+export const participantDevicesAPI = {
+  getMyDevices: () => apiClient.get(API_ENDPOINTS.participantDevices.list),
+  getMyDevice: (id) => apiClient.get(API_ENDPOINTS.participantDevices.detail(id)),
+  createDevice: (data) => apiClient.post(API_ENDPOINTS.participantDevices.list, data),
+  updateDevice: (id, data) => apiClient.patch(API_ENDPOINTS.participantDevices.detail(id), data),
+  revokeDevice: (id) => apiClient.delete(API_ENDPOINTS.participantDevices.detail(id)),
+  generateCertificate: (id) => apiClient.post(API_ENDPOINTS.participantDevices.generateCertificate(id)),
+  downloadCertificate: (id) => apiClient.get(API_ENDPOINTS.participantDevices.downloadCertificate(id), {
+    responseType: 'blob',
+  }),
+  downloadPrivateKey: (id) => apiClient.get(API_ENDPOINTS.participantDevices.downloadPrivateKey(id), {
+    responseType: 'blob',
+  }),
+};
+
+
 // Dashboard statistics API
 export const dashboardAPI = {
   getStats: () => apiClient.get(API_ENDPOINTS.dashboard.stats),
