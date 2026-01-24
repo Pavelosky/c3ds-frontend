@@ -1,144 +1,284 @@
-/**
- * Participant Dashboard - displays user's devices with management actions.
- * File: src/pages/ParticipantDashboard.jsx
- */
-
-import { 
-    useMyDevices, 
-    useGenerateCertificate,
-    useRevokeDevice,
-    downloadCertificate,
-    downloadPrivateKey 
-  } from '../hooks/useParticipantDevices';
 import { useState } from 'react';
-import AddDeviceModal from '../components/AddDeviceModal';
+import {
+  Typography,
+  Box,
+  Button,
+  Stack,
+  Alert,
+  CircularProgress,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+  IconButton,
+  Chip,
+  Tooltip,
+} from '@mui/material';
+import {
+  Add,
+  Download,
+  Delete,
+  Key,
+  Verified as CertificateIcon,
+  Refresh,
+} from '@mui/icons-material';
 import { BaseLayout } from '../components/BaseLayout';
+import { AddDeviceModal } from '../components/AddDeviceModal';
+import {
+  useMyDevices,
+  useRevokeDevice,
+  useGenerateCertificate,
+  downloadCertificate,
+  downloadPrivateKey,
+} from '../hooks/useParticipantDevices';
+import { format } from 'date-fns';
 
-function ParticipantDashboard() {
-  const { data: devices, isLoading, error } = useMyDevices();
-  const generateCertMutation = useGenerateCertificate();
-  const revokeMutation = useRevokeDevice();
+const ParticipantDashboard = () => {
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const { data: devices, isLoading, isError, error } = useMyDevices();
+  const revokeDevice = useRevokeDevice();
+  const generateCert = useGenerateCertificate();
 
-  // Handler for generating a certificate
-  const handleGenerateCert = (deviceId) => {
-    generateCertMutation.mutate(deviceId);
-  };
-
-  // Handler for revoking a device
-  const handleRevoke = (deviceId) => {
-    if (window.confirm('Are you sure you want to revoke this device?')) {
-      revokeMutation.mutate(deviceId);
+  const handleRevoke = async (deviceId, deviceName) => {
+    if (
+      confirm(
+        `Are you sure you want to revoke "${deviceName}"? This action cannot be undone.`
+      )
+    ) {
+      try {
+        await revokeDevice.mutateAsync(deviceId);
+      } catch (error) {
+        console.error('Revoke failed:', error);
+        alert('Failed to revoke device: ' + (error?.response?.data?.detail || error.message));
+      }
     }
   };
 
-  // Handler for downloading certificate
-  const handleDownloadCert = async (deviceId, deviceName) => {
+  const handleGenerateCertificate = async (deviceId, deviceName) => {
+    if (
+      confirm(
+        `Generate a new certificate for "${deviceName}"? Previous certificate will be revoked.`
+      )
+    ) {
+      try {
+        await generateCert.mutateAsync(deviceId);
+        alert('Certificate generated successfully! You can now download it.');
+      } catch (error) {
+        console.error('Generate certificate failed:', error);
+        alert('Failed to generate certificate: ' + (error?.response?.data?.detail || error.message));
+      }
+    }
+  };
+
+  const handleDownloadCertificate = async (deviceId, deviceName) => {
     try {
       await downloadCertificate(deviceId, deviceName);
-    } catch (err) {
-      alert('Failed to download certificate: ' + err.message);
+    } catch (error) {
+      console.error('Download certificate failed:', error);
+      alert('Failed to download certificate: ' + (error?.response?.data?.detail || error.message));
     }
   };
 
-  // Handler for downloading private key
-  const handleDownloadKey = async (deviceId, deviceName) => {
+  const handleDownloadPrivateKey = async (deviceId, deviceName) => {
     try {
       await downloadPrivateKey(deviceId, deviceName);
-    } catch (err) {
-      alert('Failed to download private key: ' + err.message);
+    } catch (error) {
+      console.error('Download private key failed:', error);
+      alert('Failed to download private key: ' + (error?.response?.data?.detail || error.message));
     }
   };
 
-  // Modal state
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const getStatusColor = (status) => {
+    const statusColors = {
+      PENDING: 'warning',
+      ACTIVE: 'success',
+      INACTIVE: 'info',
+      REVOKED: 'error',
+      EXPIRED: 'default',
+    };
+    return statusColors[status] || 'default';
+  };
+
+  const formatDate = (dateString) => {
+    if (!dateString) return 'N/A';
+    try {
+      return format(new Date(dateString), 'MMM dd, yyyy HH:mm');
+    } catch {
+      return 'Invalid date';
+    }
+  };
 
   if (isLoading) {
-    return <BaseLayout><div>Loading your devices...</div></BaseLayout>;
+    return (
+      <BaseLayout>
+        <Box display="flex" justifyContent="center" py={8}>
+          <CircularProgress size={60} />
+        </Box>
+      </BaseLayout>
+    );
   }
 
-  if (error) {
-    return <BaseLayout><div>Error loading devices: {error.message}</div></BaseLayout>;
+  if (isError) {
+    return (
+      <BaseLayout>
+        <Alert severity="error">
+          Failed to load devices: {error?.message || 'Unknown error'}
+        </Alert>
+      </BaseLayout>
+    );
   }
 
   return (
     <BaseLayout>
-      <div>
-        <h1>My Devices</h1>
-        <p>You have {devices?.length || 0} device(s)</p>
+      <Stack spacing={4}>
+        <Box display="flex" justifyContent="space-between" alignItems="center">
+          <Box>
+            <Typography variant="h3" component="h1" gutterBottom>
+              My Devices
+            </Typography>
+            <Typography variant="body1" color="text.secondary">
+              Manage your registered sensor devices ({devices?.length || 0} total)
+            </Typography>
+          </Box>
+          <Button
+            variant="contained"
+            startIcon={<Add />}
+            onClick={() => setIsAddModalOpen(true)}
+          >
+            Add Device
+          </Button>
+        </Box>
 
-        <button 
-          onClick={() => setIsModalOpen(true)}
-          style={{ marginBottom: '16px', padding: '8px 16px', backgroundColor: '#1976d2', color: 'white', border: 'none', cursor: 'pointer' }}>
-          + Add Device
-        </button>
-        
-        {devices?.length > 0 ? (
-          <ul style={{ listStyle: 'none', padding: 0 }}>
-            {devices.map((device) => (
-              <li key={device.id} style={{ 
-                border: '1px solid #ccc', 
-                padding: '16px', 
-                marginBottom: '12px',
-                borderRadius: '4px'
-              }}>
-                <div>
-                  <strong>{device.name}</strong> - {device.device_type}
-                </div>
-                <div>Status: {device.status}</div>
-                
-                <div style={{ marginTop: '12px' }}>
-                  {/* Only show actions for non-revoked devices */}
-                  {device.status !== 'REVOKED' && (
-                    <>
-                      <button 
-                        onClick={() => handleGenerateCert(device.id)}
-                        disabled={generateCertMutation.isPending}
-                      >
-                        Generate Certificate
-                      </button>
-                      
-                      <button 
-                        onClick={() => handleDownloadCert(device.id, device.name)}
-                        style={{ marginLeft: '8px' }}
-                      >
-                        Download Cert
-                      </button>
-                      
-                      <button 
-                        onClick={() => handleDownloadKey(device.id, device.name)}
-                        style={{ marginLeft: '8px' }}
-                      >
-                        Download Key
-                      </button>
-                      
-                      <button 
-                        onClick={() => handleRevoke(device.id)}
-                        disabled={revokeMutation.isPending}
-                        style={{ marginLeft: '8px', color: 'red' }}
-                      >
-                        Revoke
-                      </button>
-                    </>
-                  )}
-                  
-                  {device.status === 'REVOKED' && (
-                    <span style={{ color: 'gray' }}>Device revoked</span>
-                  )}
-                </div>
-              </li>
-            ))}
-          </ul>
+        {devices?.length === 0 ? (
+          <Alert severity="info">
+            You haven't registered any devices yet. Click "Add Device" to get
+            started.
+          </Alert>
         ) : (
-          <p>No devices registered yet.</p>
+          <TableContainer component={Paper}>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell>Device Name</TableCell>
+                  <TableCell>Type</TableCell>
+                  <TableCell>Status</TableCell>
+                  <TableCell>Algorithm</TableCell>
+                  <TableCell>Certificate Expiry</TableCell>
+                  <TableCell>Created</TableCell>
+                  <TableCell align="right">Actions</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {devices?.map((device) => (
+                  <TableRow
+                    key={device.id}
+                    sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
+                  >
+                    <TableCell component="th" scope="row">
+                      <Typography variant="body2" fontWeight={500}>
+                        {device.name}
+                      </Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Typography variant="body2">
+                        {device.device_type || 'N/A'}
+                      </Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Chip
+                        label={device.status}
+                        color={getStatusColor(device.status)}
+                        size="small"
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <Typography variant="body2" sx={{ fontFamily: 'monospace', fontSize: '0.75rem' }}>
+                        {device.certificate_algorithm?.replace('_', '-') || 'N/A'}
+                      </Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Typography variant="body2">
+                        {device.certificate_expiry ? formatDate(device.certificate_expiry) : 'No certificate'}
+                      </Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Typography variant="body2">
+                        {formatDate(device.created_at)}
+                      </Typography>
+                    </TableCell>
+                    <TableCell align="right">
+                      <Box display="flex" justifyContent="flex-end" gap={0.5}>
+                        {device.status !== 'REVOKED' && (
+                          <>
+                            {!device.certificate_pem ? (
+                              <Tooltip title="Generate Certificate">
+                                <IconButton
+                                  size="small"
+                                  color="primary"
+                                  onClick={() => handleGenerateCertificate(device.id, device.name)}
+                                  disabled={generateCert.isPending}
+                                >
+                                  <Refresh fontSize="small" />
+                                </IconButton>
+                              </Tooltip>
+                            ) : (
+                              <>
+                                <Tooltip title="Download Certificate">
+                                  <IconButton
+                                    size="small"
+                                    color="primary"
+                                    onClick={() => handleDownloadCertificate(device.id, device.name)}
+                                  >
+                                    <CertificateIcon fontSize="small" />
+                                  </IconButton>
+                                </Tooltip>
+                                <Tooltip title="Download Private Key">
+                                  <IconButton
+                                    size="small"
+                                    color="secondary"
+                                    onClick={() => handleDownloadPrivateKey(device.id, device.name)}
+                                  >
+                                    <Key fontSize="small" />
+                                  </IconButton>
+                                </Tooltip>
+                              </>
+                            )}
+                            <Tooltip title="Revoke Device">
+                              <IconButton
+                                size="small"
+                                color="error"
+                                onClick={() => handleRevoke(device.id, device.name)}
+                                disabled={revokeDevice.isPending}
+                              >
+                                <Delete fontSize="small" />
+                              </IconButton>
+                            </Tooltip>
+                          </>
+                        )}
+                        {device.status === 'REVOKED' && (
+                          <Typography variant="caption" color="text.secondary">
+                            Revoked
+                          </Typography>
+                        )}
+                      </Box>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
         )}
+      </Stack>
 
-        <AddDeviceModal 
-          isOpen={isModalOpen} 
-          onClose={() => setIsModalOpen(false)} 
-        />
-      </div>
+      <AddDeviceModal
+        open={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
+      />
     </BaseLayout>
   );
-}
+};
 
 export default ParticipantDashboard;
