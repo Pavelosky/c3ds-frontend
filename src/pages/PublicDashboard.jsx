@@ -1,17 +1,20 @@
+import { BaseLayout } from '../components/BaseLayout';
 import { useDevices } from '../hooks/useDevices';
 
 function PublicDashboard() {
   const { data: devices, isLoading, error } = useDevices();
 
   if (isLoading) {
-    return <div>Loading devices...</div>;
+    return <BaseLayout><div>Loading devices...</div></BaseLayout>;
   }
 
   if (error) {
-    return <div>Error loading devices: {error.message}</div>;
+    return <BaseLayout><div>Error loading devices: {error.message}</div></BaseLayout>;
+    
   }
 
   return (
+    <BaseLayout>
     <div>
       <h1>Public Dashboard</h1>
       <p>You have {devices?.length || 0} device(s)</p>
@@ -28,6 +31,7 @@ function PublicDashboard() {
         <p>No devices found.</p>
       )}
     </div>
+    </BaseLayout>
   );
 }
 

@@ -21,6 +21,30 @@ apiClient.interceptors.response.use(
   }
 );
 
+// Function to get CSRF token from Django cookie
+function getCsrfToken() {
+  const name = 'csrftoken';
+  const cookies = document.cookie.split(';');
+  for (let cookie of cookies) {
+    const trimmed = cookie.trim();
+    if (trimmed.startsWith(name + '=')) {
+      return trimmed.substring(name.length + 1);
+    }
+  }
+  return null;
+}
+
+// Request interceptor to add CSRF token to mutation requests
+apiClient.interceptors.request.use((config) => {
+  if (['post', 'put', 'patch', 'delete'].includes(config.method)) {
+    const csrfToken = getCsrfToken();
+    if (csrfToken) {
+      config.headers['X-CSRFToken'] = csrfToken;
+    }
+  }
+  return config;
+});
+
 // API modules for different resource groups
 export const authAPI = {
   checkAuth: () => apiClient.get(API_ENDPOINTS.auth.checkAuth),
