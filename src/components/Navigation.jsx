@@ -63,7 +63,7 @@ export const Navigation = () => {
 
           {isAuthenticated ? (
             <>
-              <IconButton color="inherit" onClick={handleUserMenuOpen}>
+              <IconButton color="inherit" onClick={handleUserMenuOpen} aria-label='User menu'>
                 <Avatar sx={{ bgcolor: 'secondary.main', width: 32, height: 32 }}>
                   {user?.username?.[0]?.toUpperCase() || 'U'}
                 </Avatar>
@@ -89,7 +89,7 @@ export const Navigation = () => {
 
         {/* Mobile Navigation */}
         <Box sx={{ display: { xs: 'flex', md: 'none' } }}>
-          <IconButton color="inherit" onClick={handleMobileMenuOpen}>
+          <IconButton color="inherit" onClick={handleMobileMenuOpen} aria-label='Open navigation'>
             <MenuIcon />
           </IconButton>
           <Menu anchorEl={mobileMenuAnchor} open={Boolean(mobileMenuAnchor)} onClose={handleMobileMenuClose}>
@@ -103,18 +103,16 @@ export const Navigation = () => {
                 <ListItemText>My Devices</ListItemText>
               </MenuItem>
             )}
-            {isAuthenticated ? (
-              <>
-                <Divider />
-                <MenuItem disabled>
-                  <ListItemText primary={user?.username} secondary={user?.user_type} />
-                </MenuItem>
-                <MenuItem onClick={handleLogout}>
-                  <ListItemIcon><Logout /></ListItemIcon>
-                  <ListItemText>Logout</ListItemText>
-                </MenuItem>
-              </>
-            ) : (
+            {isAuthenticated ? [
+              <Divider key="divider" />,
+              <MenuItem key="user-info" disabled>
+                <ListItemText primary={user?.username} secondary={user?.user_type} />
+              </MenuItem>,
+              <MenuItem key="logout" onClick={handleLogout}>
+                <ListItemIcon><Logout /></ListItemIcon>
+                <ListItemText>Logout</ListItemText>
+              </MenuItem>
+            ] : (
               <MenuItem href="/accounts/login/" onClick={handleMobileMenuClose}>
                 Login
               </MenuItem>

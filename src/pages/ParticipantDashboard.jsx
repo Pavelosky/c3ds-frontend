@@ -147,6 +147,7 @@ const ParticipantDashboard = () => {
             variant="contained"
             startIcon={<Add />}
             onClick={() => setIsAddModalOpen(true)}
+            aria-label='Add Device'
           >
             Add Device
           </Button>
@@ -220,6 +221,7 @@ const ParticipantDashboard = () => {
                                   color="primary"
                                   onClick={() => handleGenerateCertificate(device.id, device.name)}
                                   disabled={generateCert.isPending}
+                                  aria-label='Generate Certificate'
                                 >
                                   <Refresh fontSize="small" />
                                 </IconButton>
@@ -231,6 +233,7 @@ const ParticipantDashboard = () => {
                                     size="small"
                                     color="primary"
                                     onClick={() => handleDownloadCertificate(device.id, device.name)}
+                                    aria-label='Download Certificate'
                                   >
                                     <CertificateIcon fontSize="small" />
                                   </IconButton>
@@ -240,6 +243,7 @@ const ParticipantDashboard = () => {
                                     size="small"
                                     color="secondary"
                                     onClick={() => handleDownloadPrivateKey(device.id, device.name)}
+                                    aria-label='Download Private Key'
                                   >
                                     <Key fontSize="small" />
                                   </IconButton>
@@ -252,6 +256,7 @@ const ParticipantDashboard = () => {
                                 color="error"
                                 onClick={() => handleRevoke(device.id, device.name)}
                                 disabled={revokeDevice.isPending}
+                                aria-label='Revoke Device'
                               >
                                 <Delete fontSize="small" />
                               </IconButton>
