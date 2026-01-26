@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Typography,
   Box,
@@ -13,83 +14,22 @@ import {
   TableHead,
   TableRow,
   Paper,
-  IconButton,
   Chip,
-  Tooltip,
 } from '@mui/material';
 import {
   Add,
-  Download,
-  Delete,
-  Key,
-  Verified as CertificateIcon,
-  Refresh,
 } from '@mui/icons-material';
 import { BaseLayout } from '../components/BaseLayout';
 import { AddDeviceModal } from '../components/AddDeviceModal';
 import {
   useMyDevices,
-  useRevokeDevice,
-  useGenerateCertificate,
-  downloadCertificate,
-  downloadPrivateKey,
 } from '../hooks/useParticipantDevices';
 import { format } from 'date-fns';
 
 const ParticipantDashboard = () => {
+  const navigate = useNavigate();
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const { data: devices, isLoading, isError, error } = useMyDevices();
-  const revokeDevice = useRevokeDevice();
-  const generateCert = useGenerateCertificate();
-
-  const handleRevoke = async (deviceId, deviceName) => {
-    if (
-      confirm(
-        `Are you sure you want to revoke "${deviceName}"? This action cannot be undone.`
-      )
-    ) {
-      try {
-        await revokeDevice.mutateAsync(deviceId);
-      } catch (error) {
-        console.error('Revoke failed:', error);
-        alert('Failed to revoke device: ' + (error?.response?.data?.detail || error.message));
-      }
-    }
-  };
-
-  const handleGenerateCertificate = async (deviceId, deviceName) => {
-    if (
-      confirm(
-        `Generate a new certificate for "${deviceName}"? Previous certificate will be revoked.`
-      )
-    ) {
-      try {
-        await generateCert.mutateAsync(deviceId);
-        alert('Certificate generated successfully! You can now download it.');
-      } catch (error) {
-        console.error('Generate certificate failed:', error);
-        alert('Failed to generate certificate: ' + (error?.response?.data?.detail || error.message));
-      }
-    }
-  };
-
-  const handleDownloadCertificate = async (deviceId, deviceName) => {
-    try {
-      await downloadCertificate(deviceId, deviceName);
-    } catch (error) {
-      console.error('Download certificate failed:', error);
-      alert('Failed to download certificate: ' + (error?.response?.data?.detail || error.message));
-    }
-  };
-
-  const handleDownloadPrivateKey = async (deviceId, deviceName) => {
-    try {
-      await downloadPrivateKey(deviceId, deviceName);
-    } catch (error) {
-      console.error('Download private key failed:', error);
-      alert('Failed to download private key: ' + (error?.response?.data?.detail || error.message));
-    }
-  };
 
   const getStatusColor = (status) => {
     const statusColors = {
@@ -169,14 +109,18 @@ const ParticipantDashboard = () => {
                   <TableCell>Algorithm</TableCell>
                   <TableCell>Certificate Expiry</TableCell>
                   <TableCell>Created</TableCell>
-                  <TableCell align="right">Actions</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
                 {devices?.map((device) => (
                   <TableRow
                     key={device.id}
-                    sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
+                    hover
+                    sx={{
+                      '&:last-child td, &:last-child th': { border: 0 },
+                      cursor: 'pointer',
+                    }}
+                    onClick={() => navigate(`/device/${device.id}`)}
                   >
                     <TableCell component="th" scope="row">
                       <Typography variant="body2" fontWeight={500}>
@@ -185,7 +129,7 @@ const ParticipantDashboard = () => {
                     </TableCell>
                     <TableCell>
                       <Typography variant="body2">
-                        {device.device_type || 'N/A'}
+                        {device.device_type?.name || 'N/A'}
                       </Typography>
                     </TableCell>
                     <TableCell>
@@ -209,66 +153,6 @@ const ParticipantDashboard = () => {
                       <Typography variant="body2">
                         {formatDate(device.created_at)}
                       </Typography>
-                    </TableCell>
-                    <TableCell align="right">
-                      <Box display="flex" justifyContent="flex-end" gap={0.5}>
-                        {device.status !== 'REVOKED' && (
-                          <>
-                            {!device.certificate_pem ? (
-                              <Tooltip title="Generate Certificate">
-                                <IconButton
-                                  size="small"
-                                  color="primary"
-                                  onClick={() => handleGenerateCertificate(device.id, device.name)}
-                                  disabled={generateCert.isPending}
-                                  aria-label='Generate Certificate'
-                                >
-                                  <Refresh fontSize="small" />
-                                </IconButton>
-                              </Tooltip>
-                            ) : (
-                              <>
-                                <Tooltip title="Download Certificate">
-                                  <IconButton
-                                    size="small"
-                                    color="primary"
-                                    onClick={() => handleDownloadCertificate(device.id, device.name)}
-                                    aria-label='Download Certificate'
-                                  >
-                                    <CertificateIcon fontSize="small" />
-                                  </IconButton>
-                                </Tooltip>
-                                <Tooltip title="Download Private Key">
-                                  <IconButton
-                                    size="small"
-                                    color="secondary"
-                                    onClick={() => handleDownloadPrivateKey(device.id, device.name)}
-                                    aria-label='Download Private Key'
-                                  >
-                                    <Key fontSize="small" />
-                                  </IconButton>
-                                </Tooltip>
-                              </>
-                            )}
-                            <Tooltip title="Revoke Device">
-                              <IconButton
-                                size="small"
-                                color="error"
-                                onClick={() => handleRevoke(device.id, device.name)}
-                                disabled={revokeDevice.isPending}
-                                aria-label='Revoke Device'
-                              >
-                                <Delete fontSize="small" />
-                              </IconButton>
-                            </Tooltip>
-                          </>
-                        )}
-                        {device.status === 'REVOKED' && (
-                          <Typography variant="caption" color="text.secondary">
-                            Revoked
-                          </Typography>
-                        )}
-                      </Box>
                     </TableCell>
                   </TableRow>
                 ))}

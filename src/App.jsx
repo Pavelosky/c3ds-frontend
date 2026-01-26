@@ -3,6 +3,7 @@ import { Routes, Route } from 'react-router-dom';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import PublicDashboard from './pages/PublicDashboard';
 import ParticipantDashboard from './pages/ParticipantDashboard';
+import DeviceDetail from './pages/DeviceDetail';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import { ErrorBoundary } from './components/ErrorBoundary';
@@ -19,6 +20,11 @@ function App() {
                                           </ProtectedRoute>
                                         }
                                       />
+      <Route path="/device/:deviceId" element={ <ProtectedRoute requireParticipant={true}>
+                                                   <DeviceDetail />
+                                                 </ProtectedRoute>
+                                               }
+                                             />
     </Routes>
     </ErrorBoundary>
   );
