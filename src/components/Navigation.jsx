@@ -81,7 +81,7 @@ export const Navigation = () => {
               </Menu>
             </>
           ) : (
-            <Button color="inherit" href="/accounts/login/" variant="outlined" sx={{ borderColor: 'white' }}>
+            <Button color="inherit" component={RouterLink} to="/login" variant="outlined" sx={{ borderColor: 'white' }}>
               Login
             </Button>
           )}
@@ -113,7 +113,7 @@ export const Navigation = () => {
                 <ListItemText>Logout</ListItemText>
               </MenuItem>
             ] : (
-              <MenuItem href="/accounts/login/" onClick={handleMobileMenuClose}>
+              <MenuItem component={RouterLink} to="/login" onClick={handleMobileMenuClose}>
                 Login
               </MenuItem>
             )}

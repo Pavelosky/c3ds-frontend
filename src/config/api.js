@@ -7,7 +7,8 @@ export const API_ENDPOINTS = {
   auth: {
     login: `${API_BASE_URL}/auth/login/`,
     logout: `${API_BASE_URL}/auth/logout/`,
-    checkAuth: `${API_BASE_URL}/auth/check/`,
+    checkAuth: `${API_BASE_URL}/auth/me/`,
+    csrf: `${API_BASE_URL}/auth/csrf/`,
   },
 
   devices: {

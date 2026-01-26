@@ -16,6 +16,12 @@ const logoutUser = async () => {
   await apiClient.post('/api/v1/auth/logout/');
 };
 
+// Login the user by making a POST request to the API and refetching user data
+const loginUser = async (credentials) => {
+  const { data } = await apiClient.post('/api/v1/auth/login/', credentials);
+  return data;
+};
+
 // AuthProvider component to provide authentication-related data and methods to the app
 export const AuthProvider = ({ children }) => {
   const queryClient = useQueryClient(); // React Query client for managing server state
@@ -41,6 +47,18 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // Function to log in the user and refetch user data
+  const login = async (credentials) => {
+    try {
+      await loginUser(credentials); // Call the API to log in the user
+      await queryClient.invalidateQueries({ queryKey: ['currentUser'] }); // Refetch user data
+      window.location.replace(window.location.origin + '/dashboard'); // Redirect to the dashboard
+    } catch (error) {
+      console.error('Login failed:', error); // Log the error for debugging
+      throw error; // Re-throw the error to handle it elsewhere if needed
+    }
+  };
+
   // Value to be provided to the context consumers
   const value = {
     user: isError ? null : user, // Provide the user data or null if there's an error
@@ -49,6 +67,7 @@ export const AuthProvider = ({ children }) => {
     isParticipant: user?.is_participant ?? false, // Check if the user is a participant
     isAdmin: user?.is_admin ?? false, // Check if the user is an admin
     logout, // Provide the logout function
+    login, // Provide the login function
   };
 
   // Provide the authentication context

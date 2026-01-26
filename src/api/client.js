@@ -47,6 +47,8 @@ apiClient.interceptors.request.use((config) => {
 
 // API modules for different resource groups
 export const authAPI = {
+  getCsrf: () => apiClient.get(API_ENDPOINTS.auth.csrf),
+  login: (credentials) => apiClient.post(API_ENDPOINTS.auth.login, credentials),
   checkAuth: () => apiClient.get(API_ENDPOINTS.auth.checkAuth),
   logout: () => apiClient.post(API_ENDPOINTS.auth.logout),
 };
