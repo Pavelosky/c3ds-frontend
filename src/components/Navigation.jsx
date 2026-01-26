@@ -81,9 +81,14 @@ export const Navigation = () => {
               </Menu>
             </>
           ) : (
-            <Button color="inherit" component={RouterLink} to="/login" variant="outlined" sx={{ borderColor: 'white' }}>
-              Login
-            </Button>
+            <>
+              <Button color="inherit" component={RouterLink} to="/login" variant="outlined" sx={{ borderColor: 'white', mr: 1 }}>
+                Login
+              </Button>
+              <Button color="inherit" component={RouterLink} to="/register" variant="contained" sx={{ bgcolor: 'secondary.main' }}>
+                Register
+              </Button>
+            </>
           )}
         </Box>
 
@@ -112,11 +117,14 @@ export const Navigation = () => {
                 <ListItemIcon><Logout /></ListItemIcon>
                 <ListItemText>Logout</ListItemText>
               </MenuItem>
-            ] : (
-              <MenuItem component={RouterLink} to="/login" onClick={handleMobileMenuClose}>
+            ] : [
+              <MenuItem key="login" component={RouterLink} to="/login" onClick={handleMobileMenuClose}>
                 Login
+              </MenuItem>,
+              <MenuItem key="register" component={RouterLink} to="/register" onClick={handleMobileMenuClose}>
+                Register
               </MenuItem>
-            )}
+            ]}
           </Menu>
         </Box>
       </Toolbar>

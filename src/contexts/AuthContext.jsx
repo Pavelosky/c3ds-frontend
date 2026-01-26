@@ -32,7 +32,7 @@ export const AuthProvider = ({ children }) => {
     queryFn: getCurrentUser, // Function to fetch the data
     staleTime: 5 * 60 * 1000, // Cache the data for 5 minutes
     retry: false, // Disable retries on failure
-    refetchOnWindowFocus: true, 
+    refetchOnWindowFocus: true,
   });
 
   // Function to log out the user and clear the cache
@@ -59,6 +59,18 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // Function to register new user and auto-login
+  const register = async (userData) => {
+    try {
+      await apiClient.post('/api/v1/auth/register/', userData);
+      await queryClient.invalidateQueries({ queryKey: ['currentUser'] });
+      window.location.replace(window.location.origin + '/dashboard');
+    } catch (error) {
+      console.error('Registration failed:', error);
+      throw error;
+    }
+  };
+
   // Value to be provided to the context consumers
   const value = {
     user: isError ? null : user, // Provide the user data or null if there's an error
@@ -68,6 +80,7 @@ export const AuthProvider = ({ children }) => {
     isAdmin: user?.is_admin ?? false, // Check if the user is an admin
     logout, // Provide the logout function
     login, // Provide the login function
+    register, // Provide the register function
   };
 
   // Provide the authentication context

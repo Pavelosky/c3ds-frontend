@@ -4,6 +4,7 @@ import { ProtectedRoute } from './components/ProtectedRoute';
 import PublicDashboard from './pages/PublicDashboard';
 import ParticipantDashboard from './pages/ParticipantDashboard';
 import Login from './pages/Login';
+import Register from './pages/Register';
 import { ErrorBoundary } from './components/ErrorBoundary';
 
 function App() {
@@ -12,6 +13,7 @@ function App() {
     <Routes>
       <Route path="/" element={<PublicDashboard />} />
       <Route path="/login" element={<Login />} />
+      <Route path="/register" element={<Register />} />
       <Route path="/dashboard" element={ <ProtectedRoute requireParticipant={true}>
                                             <ParticipantDashboard />
                                           </ProtectedRoute>

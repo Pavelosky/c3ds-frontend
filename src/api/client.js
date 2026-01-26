@@ -49,6 +49,7 @@ apiClient.interceptors.request.use((config) => {
 export const authAPI = {
   getCsrf: () => apiClient.get(API_ENDPOINTS.auth.csrf),
   login: (credentials) => apiClient.post(API_ENDPOINTS.auth.login, credentials),
+  register: (userData) => apiClient.post(API_ENDPOINTS.auth.register, userData),
   checkAuth: () => apiClient.get(API_ENDPOINTS.auth.checkAuth),
   logout: () => apiClient.post(API_ENDPOINTS.auth.logout),
 };
