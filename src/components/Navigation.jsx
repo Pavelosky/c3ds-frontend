@@ -38,13 +38,28 @@ export const Navigation = () => {
   };
 
   return (
-    <AppBar position="sticky">
-      <Toolbar>
+    <AppBar
+      position="sticky"
+      sx={{
+        bgcolor: '#003f87',
+        boxShadow: '0 4px 18px rgba(0, 0, 0, 0.5)',
+
+      }}
+    >
+      <Toolbar sx={{ minHeight: '64px !important' }}>
         <Typography
           variant="h6"
           component={RouterLink}
           to="/"
-          sx={{ flexGrow: 1, textDecoration: 'none', color: 'inherit', fontWeight: 700 }}
+          sx={{
+            flexGrow: 1,
+            textDecoration: 'none',
+            color: '#ffffff',
+            fontWeight: 700,
+            fontFamily: 'monospace',
+            letterSpacing: 2,
+            fontSize: '1.25rem'
+          }}
         >
           C3DS
         </Typography>
