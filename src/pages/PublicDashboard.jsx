@@ -2,6 +2,7 @@ import { Box, Typography, Alert, CircularProgress } from '@mui/material';
 import { Navigation } from '../components/Navigation';
 import { useDevices } from '../hooks/useDevices';
 import DeviceMap from '../components/DeviceMap';
+import MessageSidebar from '../components/MessageSidebar';
 
 /**
  * PublicDashboard Component
@@ -110,28 +111,52 @@ function PublicDashboard() {
     >
       <Navigation />
 
+      {/* Main Content Area: Sidebar + Map */}
+      <Box
+        sx={{
+          flex: 1,
+          display: 'flex',
+          flexDirection: 'row',
+          overflow: 'hidden',
+        }}
+      >
+        {/* Left Sidebar - Messages */}
+        <MessageSidebar />
+
+        {/* Map Area */}
         {activeDevices.length > 0 ? (
-            <Box sx={{ flex: 1, minHeight: 0, position: 'relative' }}>
-              <DeviceMap devices={activeDevices} height="100%" />
-            </Box>
+          <Box sx={{ flex: 1, minHeight: 0, position: 'relative' }}>
+            <DeviceMap devices={activeDevices} height="100%" />
+          </Box>
         ) : (
-          <Alert
-            severity="info"
+          <Box
             sx={{
-              bgcolor: 'rgba(33, 150, 243, 0.1)',
-              color: '#90caf9',
-              border: 1,
-              borderColor: '#1976d2',
-              fontFamily: 'monospace',
-              '& .MuiAlert-icon': {
-                color: '#90caf9',
-              },
+              flex: 1,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              bgcolor: '#0a0e27',
             }}
           >
-            NO ACTIVE SENSORS DETECTED. AWAITING PARTICIPANT REGISTRATION...
-          </Alert>
+            <Alert
+              severity="info"
+              sx={{
+                bgcolor: 'rgba(33, 150, 243, 0.1)',
+                color: '#90caf9',
+                border: 1,
+                borderColor: '#1976d2',
+                fontFamily: 'monospace',
+                '& .MuiAlert-icon': {
+                  color: '#90caf9',
+                },
+              }}
+            >
+              NO ACTIVE SENSORS DETECTED. AWAITING PARTICIPANT REGISTRATION...
+            </Alert>
+          </Box>
         )}
       </Box>
+    </Box>
   );
 }
 
