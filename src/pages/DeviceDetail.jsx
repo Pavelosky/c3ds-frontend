@@ -26,9 +26,11 @@ import {
   Memory,
   Security,
   Refresh,
+  Edit,
 } from '@mui/icons-material';
 import { BaseLayout } from '../components/BaseLayout';
 import { WiFiConfigModal } from '../components/WiFiConfigModal';
+import { EditDeviceModal } from '../components/EditDeviceModal';
 import DeviceMap from '../components/DeviceMap';
 import {
   useMyDevice,
@@ -47,6 +49,7 @@ const DeviceDetail = () => {
   const revokeDevice = useRevokeDevice();
   const generateCert = useGenerateCertificate();
   const [wifiModalOpen, setWifiModalOpen] = useState(false);
+  const [editModalOpen, setEditModalOpen] = useState(false);
 
   const handleGenerateCertificate = async () => {
     if (
@@ -117,7 +120,7 @@ const DeviceDetail = () => {
   if (isLoading) {
     return (
       <BaseLayout>
-        <Box display="flex" justifyContent="center" alignItems="center" minHeight="60vh">
+        <Box display="flex" justifyContent="center" align="left" minHeight="60vh">
           <CircularProgress />
         </Box>
       </BaseLayout>
@@ -144,7 +147,7 @@ const DeviceDetail = () => {
     <BaseLayout>
       <Box sx={{ py: 3 }}>
         {/* Header with Back Button and Device Name */}
-        <Box display="flex" alignItems="center" gap={2} mb={2}>
+        <Box display="flex" align="left" gap={2} mb={2}>
           <IconButton onClick={() => navigate('/dashboard')}>
             <ArrowBack />
           </IconButton>
@@ -215,21 +218,6 @@ const DeviceDetail = () => {
                 </span>
               </Tooltip>
             )}
-
-            {/* Revoke Device */}
-            <Tooltip title={!canRevoke ? 'Device already revoked' : ''}>
-              <span>
-                <Button
-                  variant="contained"
-                  color="error"
-                  startIcon={<Delete />}
-                  onClick={handleRevoke}
-                  disabled={!canRevoke}
-                >
-                  Revoke Device
-                </Button>
-              </span>
-            </Tooltip>
           </Stack>
         </Box>
 
@@ -246,40 +234,40 @@ const DeviceDetail = () => {
 
                 <Stack spacing={2.5}>
                   {/* Description */}
-                  {device.description && (
+                    {device.description && (
                     <Box>
-                       <Box display="flex" alignItems="center" gap={1} mb={0.5}>
-                       <Memory fontSize="small" color="action" />
+                      <Box display="flex" align="left" gap={1} mb={0.5}>
+                      <Memory fontSize="small" color="action" />
                       <Typography variant="subtitle2" color="text.secondary" gutterBottom>
                         Description
                       </Typography>
                       </Box>
-                      <Typography variant="body2" display="flex" alignItems="center" gap={1} mb={0.5}>{device.description}</Typography>
+                      <Typography variant="body2" align="left">{device.description}</Typography>
                     </Box>
-                  )}
+                    )}
 
-                  {/* Device Type */}
+                    {/* Device Type */}
                   <Box>
-                    <Box display="flex" alignItems="center">
+                    <Box display="flex" align="left">
                       <Memory fontSize="small" color="action" />
                       <Typography variant="subtitle2" color="text.secondary">
                         Device Type
                       </Typography>
                     </Box>
-                    <Typography variant="body2" display="flex" alignItems="center">
+                    <Typography variant="body2" display="flex" align="left">
                       {device.device_type?.name || 'Not specified'}
                     </Typography>
                   </Box>
 
                   {/* Encryption Algorithm */}
                   <Box>
-                    <Box display="flex" alignItems="center" gap={1} mb={0.5}>
+                    <Box display="flex" align="left" gap={1} mb={0.5}>
                       <Security fontSize="small" color="action" />
                       <Typography variant="subtitle2" color="text.secondary">
                         Encryption Algorithm
                       </Typography>
                     </Box>
-                    <Typography variant="body2" display="flex" alignItems="center">
+                    <Typography variant="body2" display="flex" align="left">
                       {device.certificate_algorithm?.replace(/_/g, '-') || 'N/A'}
                     </Typography>
                   </Box>
@@ -287,16 +275,16 @@ const DeviceDetail = () => {
                   {/* Location */}
                   {(device.latitude || device.longitude) && (
                     <Box>
-                      <Box display="flex" alignItems="center" gap={1} mb={0.5}>
+                      <Box display="flex" align="left" gap={1} mb={0.5}>
                         <LocationOn fontSize="small" color="action" />
                         <Typography variant="subtitle2" color="text.secondary">
                           Location
                         </Typography>
                       </Box>
-                      <Typography variant="body2" display="flex" alignItems="center">
+                      <Typography variant="body2" display="flex" align="left">
                         Lat: {device.latitude || 'N/A'}
                       </Typography>
-                      <Typography variant="body2" display="flex" alignItems="center">
+                      <Typography variant="body2" display="flex" align="left">
                         Long: {device.longitude || 'N/A'}
                       </Typography>
                     </Box>
@@ -304,13 +292,13 @@ const DeviceDetail = () => {
 
                   {/* Created Date */}
                   <Box>
-                    <Box display="flex" alignItems="center" gap={1} mb={0.5}>
+                    <Box display="flex" align="left" gap={1} mb={0.5}>
                       <CalendarToday fontSize="small" color="action" />
                       <Typography variant="subtitle2" color="text.secondary">
                         Created
                       </Typography>
                     </Box>
-                    <Typography variant="body2" display="flex" alignItems="center">
+                    <Typography variant="body2" display="flex" align="left">
                       {device.created_at
                         ? format(new Date(device.created_at), 'PPpp')
                         : 'N/A'}
@@ -320,18 +308,47 @@ const DeviceDetail = () => {
                   {/* Certificate Expiry */}
                   {device.certificate_expiry && (
                     <Box>
-                      <Box display="flex" alignItems="center" gap={1} mb={0.5}>
+                      <Box display="flex" align="left" gap={1} mb={0.5}>
                         <Security fontSize="small" color="action" />
                         <Typography variant="subtitle2" color="text.secondary">
                           Certificate Expires
                         </Typography>
                       </Box>
-                      <Typography variant="body2" display="flex" alignItems="center">
+                      <Typography variant="body2" display="flex" align="left">
                         {format(new Date(device.certificate_expiry), 'PPpp')}
                       </Typography>
                     </Box>
                   )}
                 </Stack>
+
+                <Divider sx={{ my: 2 }} />
+
+                {/* Edit Device Button */}
+                <Button
+                  fullWidth
+                  variant="outlined"
+                  startIcon={<Edit />}
+                  onClick={() => setEditModalOpen(true)}
+                  disabled={device.status === 'REVOKED'}
+                >
+                  Edit Device Information
+                </Button>
+                
+                <Divider sx={{ my: 2 }} />
+                
+                {/* Revoke Device */}
+                <Tooltip title={!canRevoke ? 'Device already revoked' : ''}>
+                    <Button
+                      fullWidth
+                      variant="contained"
+                      color="error"
+                      startIcon={<Delete />}
+                      onClick={handleRevoke}
+                      disabled={!canRevoke}
+                    >
+                      Revoke Device
+                    </Button>
+                </Tooltip>
               </CardContent>
             </Card>
           </Grid>
@@ -380,7 +397,7 @@ const DeviceDetail = () => {
         </Grid>
       </Box>
 
-      
+
 
       {/* WiFi Configuration Modal */}
       <WiFiConfigModal
@@ -390,6 +407,17 @@ const DeviceDetail = () => {
         deviceName={device?.name || 'device'}
         onDownloadSuccess={() => {
           setWifiModalOpen(false);
+        }}
+      />
+
+      {/* Edit Device Modal */}
+      <EditDeviceModal
+        open={editModalOpen}
+        onClose={() => setEditModalOpen(false)}
+        device={device}
+        onUpdateSuccess={() => {
+          // Device data will be automatically refetched by React Query
+          alert('Device updated successfully!');
         }}
       />
     </BaseLayout>

@@ -56,13 +56,31 @@ export function useCreateDevice() {
   }
 
 /**
+ * Updates device information (name, description, location, device_type).
+ * Cannot update certificate-related fields or status through this endpoint.
+ * Invalidates the device cache on success.
+ */
+export function useUpdateDevice() {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+      mutationFn: ({ deviceId, data }) => participantDevicesAPI.updateDevice(deviceId, data),
+      onSuccess: (_, { deviceId }) => {
+        // Invalidate both the list and the specific device
+        queryClient.invalidateQueries({ queryKey: ['myDevices'] });
+        queryClient.invalidateQueries({ queryKey: ['myDevices', deviceId] });
+      },
+    });
+  }
+
+/**
  * Revokes a device (soft delete - sets status to REVOKED).
  * Revoked devices cannot generate new certificates or send messages.
  * Invalidates the device list cache on success.
  */
 export function useRevokeDevice() {
     const queryClient = useQueryClient();
-  
+
     return useMutation({
       mutationFn: (deviceId) => participantDevicesAPI.revokeDevice(deviceId),
       onSuccess: (_, deviceId) => {
