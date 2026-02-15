@@ -158,23 +158,23 @@ function DeviceMap({ devices, height = '500px' }) {
         /> */}
 
         {/* Alternative map styles */}
-        {/* // Light clean
+        // Light clean
         <TileLayer
           attribution='&copy; <a href="https://stadiamaps.com/">Stadia Maps</a>, &copy; <a href="https://openmaptiles.org/">OpenMapTiles</a> &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors'
           url="https://tiles.stadiamaps.com/tiles/outdoors/{z}/{x}/{y}{r}.png"
         />
 
         // Datk clean
-        <TileLayer
+        {/* <TileLayer
           attribution='&copy; <a href="https://stadiamaps.com/">Stadia Maps</a>, &copy; <a href="https://openmaptiles.org/">OpenMapTiles</a> &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors'
           url="https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png"
         /> */}
 
         // Thunderforest https://thunderforest.com
-        <TileLayer
+        {/* <TileLayer
           attribution='&copy; <a href="http://www.thunderforest.com/">Thunderforest</a>, &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           url={`https://tile.thunderforest.com/landscape/{z}/{x}/{y}.png?apikey=${thunderforestApiKey}`}
-        />
+        /> */}
 
 
 

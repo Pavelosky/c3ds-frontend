@@ -1,4 +1,7 @@
-import { Box, Select, MenuItem, FormControl, Typography } from '@mui/material';
+import { Box, Typography, ToggleButtonGroup, ToggleButton } from '@mui/material';
+import WarningIcon from '@mui/icons-material/Warning';
+import FavoriteIcon from '@mui/icons-material/Favorite';
+import ViewListIcon from '@mui/icons-material/ViewList';
 
 /**
  * MessageFilters Component
@@ -17,12 +20,16 @@ import { Box, Select, MenuItem, FormControl, Typography } from '@mui/material';
  * @param {Function} onFilterChange - Callback when filters change
  */
 function MessageFilters({ filters, onFilterChange }) {
-  const handleMessageTypeChange = (event) => {
-    onFilterChange({ ...filters, message_type: event.target.value });
+  const handleMessageTypeChange = (_event, newType) => {
+    // If user clicks the same button, allow deselection (newType will be null)
+    onFilterChange({ ...filters, message_type: newType || '' });
   };
 
-  const handleTimeWindowChange = (event) => {
-    onFilterChange({ ...filters, time_window: event.target.value });
+  const handleTimeWindowChange = (_event, newValue) => {
+    // If user clicks the same button, don't allow deselection for time window
+    if (newValue !== null) {
+      onFilterChange({ ...filters, time_window: newValue });
+    }
   };
 
   return (
@@ -31,8 +38,8 @@ function MessageFilters({ filters, onFilterChange }) {
         pb: 1.5,
       }}
     >
-      {/* Message Type Filter */}
-      <FormControl fullWidth size="small" sx={{ mb: 1 }}>
+      {/* Message Type Filter - Toggle Buttons */}
+      <Box sx={{ mb: 1 }}>
         <Typography
           variant="caption"
           sx={{
@@ -45,39 +52,107 @@ function MessageFilters({ filters, onFilterChange }) {
         >
           Message Type
         </Typography>
-        <Select
+        <ToggleButtonGroup
           value={filters.message_type || ''}
+          exclusive
           onChange={handleMessageTypeChange}
-          displayEmpty
+          fullWidth
+          size="small"
           sx={{
-            bgcolor: '#ffffff',
-            fontSize: '0.85rem',
-            '& .MuiOutlinedInput-notchedOutline': {
+            '& .MuiToggleButtonGroup-grouped': {
+              border: 2,
               borderColor: '#003f87',
-            },
-            '&:hover .MuiOutlinedInput-notchedOutline': {
-              borderColor: '#1565c0',
-            },
-            '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-              borderColor: '#003f87',
-              borderWidth: 2,
+              '&:not(:first-of-type)': {
+                borderLeft: 2,
+                borderColor: '#003f87',
+                marginLeft: 0,
+              },
+              '&:first-of-type': {
+                borderRadius: 0,
+              },
+              '&:last-of-type': {
+                borderRadius: 0,
+              },
             },
           }}
         >
-          <MenuItem value="" sx={{ fontSize: '0.85rem' }}>
-            All Types
-          </MenuItem>
-          <MenuItem value="alert" sx={{ fontSize: '0.85rem', color: '#d32f2f' }}>
+          <ToggleButton
+            value=""
+            sx={{
+              bgcolor: filters.message_type === '' ? '#ffffff' : 'rgba(255, 255, 255, 0.1)',
+              color: filters.message_type === '' ? '#003f87' : '#ffffff',
+              fontSize: '0.7rem',
+              fontWeight: 700,
+              textTransform: 'uppercase',
+              py: 0.5,
+              '&:hover': {
+                bgcolor: filters.message_type === '' ? '#ffffff' : 'rgba(255, 255, 255, 0.2)',
+              },
+              '&.Mui-selected': {
+                bgcolor: '#ffffff',
+                color: '#003f87',
+                '&:hover': {
+                  bgcolor: '#ffffff',
+                },
+              },
+            }}
+          >
+            <ViewListIcon sx={{ fontSize: '1rem', mr: 0.5 }} />
+            All
+          </ToggleButton>
+          <ToggleButton
+            value="alert"
+            sx={{
+              bgcolor: filters.message_type === 'alert' ? '#d32f2f' : 'rgba(255, 255, 255, 0.1)',
+              color: '#ffffff',
+              fontSize: '0.7rem',
+              fontWeight: 700,
+              textTransform: 'uppercase',
+              py: 0.5,
+              '&:hover': {
+                bgcolor: filters.message_type === 'alert' ? '#c62828' : 'rgba(211, 47, 47, 0.3)',
+              },
+              '&.Mui-selected': {
+                bgcolor: '#d32f2f',
+                color: '#ffffff',
+                '&:hover': {
+                  bgcolor: '#c62828',
+                },
+              },
+            }}
+          >
+            <WarningIcon sx={{ fontSize: '1rem', mr: 0.5 }} />
             Alert
-          </MenuItem>
-          <MenuItem value="heartbeat" sx={{ fontSize: '0.85rem', color: '#0288d1' }}>
+          </ToggleButton>
+          <ToggleButton
+            value="heartbeat"
+            sx={{
+              bgcolor: filters.message_type === 'heartbeat' ? '#0288d1' : 'rgba(255, 255, 255, 0.1)',
+              color: '#ffffff',
+              fontSize: '0.7rem',
+              fontWeight: 700,
+              textTransform: 'uppercase',
+              py: 0.5,
+              '&:hover': {
+                bgcolor: filters.message_type === 'heartbeat' ? '#0277bd' : 'rgba(2, 136, 209, 0.3)',
+              },
+              '&.Mui-selected': {
+                bgcolor: '#0288d1',
+                color: '#ffffff',
+                '&:hover': {
+                  bgcolor: '#0277bd',
+                },
+              },
+            }}
+          >
+            <FavoriteIcon sx={{ fontSize: '1rem', mr: 0.5 }} />
             Heartbeat
-          </MenuItem>
-        </Select>
-      </FormControl>
+          </ToggleButton>
+        </ToggleButtonGroup>
+      </Box>
 
-      {/* Time Window Filter */}
-      <FormControl fullWidth size="small">
+      {/* Time Window Filter - Toggle Buttons */}
+      <Box>
         <Typography
           variant="caption"
           sx={{
@@ -90,38 +165,147 @@ function MessageFilters({ filters, onFilterChange }) {
         >
           Time Window
         </Typography>
-        <Select
+        <ToggleButtonGroup
           value={filters.time_window || 'all'}
+          exclusive
           onChange={handleTimeWindowChange}
+          fullWidth
+          size="small"
           sx={{
-            bgcolor: '#ffffff',
-            fontSize: '0.85rem',
-            '& .MuiOutlinedInput-notchedOutline': {
+            '& .MuiToggleButtonGroup-grouped': {
+              border: 2,
               borderColor: '#003f87',
-            },
-            '&:hover .MuiOutlinedInput-notchedOutline': {
-              borderColor: '#1565c0',
-            },
-            '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-              borderColor: '#003f87',
-              borderWidth: 2,
+              '&:not(:first-of-type)': {
+                borderLeft: 2,
+                borderColor: '#003f87',
+                marginLeft: 0,
+              },
+              '&:first-of-type': {
+                borderRadius: 0,
+              },
+              '&:last-of-type': {
+                borderRadius: 0,
+              },
             },
           }}
         >
-          <MenuItem value="1h" sx={{ fontSize: '0.85rem' }}>
-            Last Hour
-          </MenuItem>
-          <MenuItem value="24h" sx={{ fontSize: '0.85rem' }}>
-            Last 24 Hours
-          </MenuItem>
-          <MenuItem value="7d" sx={{ fontSize: '0.85rem' }}>
-            Last 7 Days
-          </MenuItem>
-          <MenuItem value="all" sx={{ fontSize: '0.85rem' }}>
-            All Time
-          </MenuItem>
-        </Select>
-      </FormControl>
+          <ToggleButton
+            value="1h"
+            sx={{
+              bgcolor: filters.time_window === '1h' ? '#ffffff' : 'rgba(255, 255, 255, 0.1)',
+              color: filters.time_window === '1h' ? '#003f87' : '#ffffff',
+              fontSize: '0.65rem',
+              fontWeight: 700,
+              textTransform: 'uppercase',
+              py: 0.5,
+              '&:hover': {
+                bgcolor: filters.time_window === '1h' ? '#ffffff' : 'rgba(255, 255, 255, 0.2)',
+              },
+              '&.Mui-selected': {
+                bgcolor: '#ffffff',
+                color: '#003f87',
+                '&:hover': {
+                  bgcolor: '#ffffff',
+                },
+              },
+            }}
+          >
+            1h
+          </ToggleButton>
+          <ToggleButton
+            value="6h"
+            sx={{
+              bgcolor: filters.time_window === '6h' ? '#ffffff' : 'rgba(255, 255, 255, 0.1)',
+              color: filters.time_window === '6h' ? '#003f87' : '#ffffff',
+              fontSize: '0.65rem',
+              fontWeight: 700,
+              textTransform: 'uppercase',
+              py: 0.5,
+              '&:hover': {
+                bgcolor: filters.time_window === '6h' ? '#ffffff' : 'rgba(255, 255, 255, 0.2)',
+              },
+              '&.Mui-selected': {
+                bgcolor: '#ffffff',
+                color: '#003f87',
+                '&:hover': {
+                  bgcolor: '#ffffff',
+                },
+              },
+            }}
+          >
+            6h
+          </ToggleButton>
+          <ToggleButton
+            value="24h"
+            sx={{
+              bgcolor: filters.time_window === '24h' ? '#ffffff' : 'rgba(255, 255, 255, 0.1)',
+              color: filters.time_window === '24h' ? '#003f87' : '#ffffff',
+              fontSize: '0.65rem',
+              fontWeight: 700,
+              textTransform: 'uppercase',
+              py: 0.5,
+              '&:hover': {
+                bgcolor: filters.time_window === '24h' ? '#ffffff' : 'rgba(255, 255, 255, 0.2)',
+              },
+              '&.Mui-selected': {
+                bgcolor: '#ffffff',
+                color: '#003f87',
+                '&:hover': {
+                  bgcolor: '#ffffff',
+                },
+              },
+            }}
+          >
+            24h
+          </ToggleButton>
+          <ToggleButton
+            value="7d"
+            sx={{
+              bgcolor: filters.time_window === '7d' ? '#ffffff' : 'rgba(255, 255, 255, 0.1)',
+              color: filters.time_window === '7d' ? '#003f87' : '#ffffff',
+              fontSize: '0.65rem',
+              fontWeight: 700,
+              textTransform: 'uppercase',
+              py: 0.5,
+              '&:hover': {
+                bgcolor: filters.time_window === '7d' ? '#ffffff' : 'rgba(255, 255, 255, 0.2)',
+              },
+              '&.Mui-selected': {
+                bgcolor: '#ffffff',
+                color: '#003f87',
+                '&:hover': {
+                  bgcolor: '#ffffff',
+                },
+              },
+            }}
+          >
+            7d
+          </ToggleButton>
+          <ToggleButton
+            value="all"
+            sx={{
+              bgcolor: filters.time_window === 'all' ? '#ffffff' : 'rgba(255, 255, 255, 0.1)',
+              color: filters.time_window === 'all' ? '#003f87' : '#ffffff',
+              fontSize: '0.65rem',
+              fontWeight: 700,
+              textTransform: 'uppercase',
+              py: 0.5,
+              '&:hover': {
+                bgcolor: filters.time_window === 'all' ? '#ffffff' : 'rgba(255, 255, 255, 0.2)',
+              },
+              '&.Mui-selected': {
+                bgcolor: '#ffffff',
+                color: '#003f87',
+                '&:hover': {
+                  bgcolor: '#ffffff',
+                },
+              },
+            }}
+          >
+            All
+          </ToggleButton>
+        </ToggleButtonGroup>
+      </Box>
     </Box>
   );
 }

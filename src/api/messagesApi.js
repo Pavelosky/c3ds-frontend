@@ -35,7 +35,15 @@ export const messagesApi = {
    * ]
    */
   getMessages: async (params = {}) => {
-    const response = await apiClient.get('/api/v1/messages/', { params });
+    // Clean up empty string parameters (they should be omitted, not sent as empty strings)
+    const cleanParams = Object.entries(params).reduce((acc, [key, value]) => {
+      if (value !== '' && value !== null && value !== undefined) {
+        acc[key] = value;
+      }
+      return acc;
+    }, {});
+
+    const response = await apiClient.get('/api/v1/messages/', { params: cleanParams });
     return response.data.results || response.data; // Handle both paginated and non-paginated responses
   },
 };

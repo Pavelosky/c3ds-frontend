@@ -1,16 +1,19 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Box, Typography, CircularProgress, Alert } from '@mui/material';
 import { useMessages } from '../hooks/useMessages';
-import MessageCard from './MessageCard';
+import DeviceMessageGroup from './DeviceMessageGroup';
 import MessageFilters from './MessageFilters';
+import SidebarStats from './SidebarStats';
 
 /**
  * MessageSidebar Component
  *
- * Left sidebar displaying device messages with filtering capabilities.
+ * Left sidebar displaying device messages grouped by device with filtering capabilities.
  * Updates every 10 seconds via polling for near-real-time message display.
  *
  * Features:
+ * - Statistics section showing alerts (2h) and active devices count
+ * - Messages grouped by device (expandable/collapsible)
  * - Filter messages by type (alert/heartbeat) and time window
  * - Automatic refresh every 10 seconds
  * - Scrollable message list
@@ -19,9 +22,9 @@ import MessageFilters from './MessageFilters';
  * - Empty state handling
  *
  * Layout:
- * - Fixed width (320px)
+ * - Fixed width (480px)
  * - Full height sidebar on left side of dashboard
- * - Sticky header with filters
+ * - Sticky header with stats and filters
  * - Scrollable message list
  */
 function MessageSidebar() {
@@ -29,11 +32,47 @@ function MessageSidebar() {
   const [filters, setFilters] = useState({
     message_type: '', // Empty string = all types
     time_window: 'all', // Default to all messages
-    limit: 50,
+    limit: 200, // Maximum allowed by backend to show more devices
   });
+
+  // Selected message for detail view
+  const [selectedMessage, setSelectedMessage] = useState(null);
 
   // Fetch messages with current filters
   const { data: messages, isLoading, error } = useMessages(filters);
+
+  // Group messages by device (device with latest message first)
+  const groupedMessages = useMemo(() => {
+    if (!messages) return [];
+
+    // Group messages by device_id
+    const groups = messages.reduce((acc, message) => {
+      const deviceId = message.device;
+      if (!acc[deviceId]) {
+        acc[deviceId] = {
+          deviceId,
+          deviceName: message.device_name,
+          messages: [],
+        };
+      }
+      acc[deviceId].messages.push(message);
+      return acc;
+    }, {});
+
+    // Convert to array and sort by latest message timestamp
+    return Object.values(groups).sort((a, b) => {
+      const aLatest = new Date(a.messages[0].timestamp);
+      const bLatest = new Date(b.messages[0].timestamp);
+      return bLatest - aLatest; // Newest first
+    });
+  }, [messages]);
+
+  // Handle message click
+  const handleMessageClick = (message) => {
+    setSelectedMessage(message);
+    // TODO: Show message detail in modal or detail panel
+    console.log('Message clicked:', message);
+  };
 
   return (
     <Box
@@ -58,37 +97,8 @@ function MessageSidebar() {
           flexShrink: 0,
         }}
       >
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
-          <Typography
-            variant="h6"
-            sx={{
-              color: '#ffffff',
-              fontWeight: 700,
-              fontSize: '1rem',
-              textTransform: 'uppercase',
-              letterSpacing: 0.5,
-            }}
-          >
-            MESSAGES
-          </Typography>
-
-          {/* Message Count Badge */}
-          {!isLoading && messages && (
-            <Box
-              sx={{
-                bgcolor: '#ffffff',
-                color: '#003f87',
-                px: 1,
-                py: 0.2,
-                borderRadius: 1,
-                fontSize: '0.7rem',
-                fontWeight: 700,
-              }}
-            >
-              {messages.length}
-            </Box>
-          )}
-        </Box>
+        {/* Statistics */}
+        <SidebarStats />
 
         {/* Filters */}
         <MessageFilters filters={filters} onFilterChange={setFilters} />
@@ -162,7 +172,7 @@ function MessageSidebar() {
         )}
 
         {/* Empty State */}
-        {!isLoading && !error && messages && messages.length === 0 && (
+        {!isLoading && !error && groupedMessages && groupedMessages.length === 0 && (
           <Box
             sx={{
               textAlign: 'center',
@@ -194,12 +204,18 @@ function MessageSidebar() {
           </Box>
         )}
 
-        {/* Message Cards */}
+        {/* Device Message Groups */}
         {!isLoading &&
           !error &&
-          messages &&
-          messages.map((message) => (
-            <MessageCard key={message.id} message={message} />
+          groupedMessages &&
+          groupedMessages.map((group) => (
+            <DeviceMessageGroup
+              key={group.deviceId}
+              deviceId={group.deviceId}
+              deviceName={group.deviceName}
+              messages={group.messages}
+              onMessageClick={handleMessageClick}
+            />
           ))}
       </Box>
     </Box>
