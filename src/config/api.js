@@ -26,6 +26,7 @@ export const API_ENDPOINTS = {
     generateCertificate: (id) => `${API_BASE_URL}/devices/participant/${id}/generate-certificate/`,
     downloadCertificate: (id) => `${API_BASE_URL}/devices/participant/${id}/download-certificate/`,
     downloadPrivateKey: (id) => `${API_BASE_URL}/devices/participant/${id}/download-private-key/`,
+    downloadCodeBundle: (id) => `${API_BASE_URL}/devices/participant/${id}/download-code/`,
   },
 
   dashboard: {

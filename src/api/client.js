@@ -81,6 +81,11 @@ export const participantDevicesAPI = {
   downloadPrivateKey: (id) => apiClient.get(API_ENDPOINTS.participantDevices.downloadPrivateKey(id), {
     responseType: 'blob',
   }),
+  downloadCodeBundle: (id, wifiCredentials) => apiClient.post(
+    API_ENDPOINTS.participantDevices.downloadCodeBundle(id),
+    wifiCredentials,
+    { responseType: 'blob' }
+  ),
 };
 
 

@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   Box,
@@ -27,12 +28,14 @@ import {
   Refresh,
 } from '@mui/icons-material';
 import { BaseLayout } from '../components/BaseLayout';
+import { WiFiConfigModal } from '../components/WiFiConfigModal';
 import {
   useMyDevice,
   useRevokeDevice,
   useGenerateCertificate,
   downloadCertificate,
   downloadPrivateKey,
+  downloadCodeBundle,
 } from '../hooks/useParticipantDevices';
 import { format } from 'date-fns';
 
@@ -42,6 +45,7 @@ const DeviceDetail = () => {
   const { data: device, isLoading, isError, error } = useMyDevice(deviceId);
   const revokeDevice = useRevokeDevice();
   const generateCert = useGenerateCertificate();
+  const [wifiModalOpen, setWifiModalOpen] = useState(false);
 
   const handleGenerateCertificate = async () => {
     if (
@@ -95,8 +99,7 @@ const DeviceDetail = () => {
   };
 
   const handleDownloadCodeBundle = () => {
-    // TODO: Implement code bundle download
-    alert('Code bundle download will be implemented soon');
+    setWifiModalOpen(true);
   };
 
   const getStatusColor = (status) => {
@@ -363,6 +366,17 @@ const DeviceDetail = () => {
           </Grid>
         </Grid>
       </Box>
+
+      {/* WiFi Configuration Modal */}
+      <WiFiConfigModal
+        open={wifiModalOpen}
+        onClose={() => setWifiModalOpen(false)}
+        deviceId={deviceId}
+        deviceName={device?.name || 'device'}
+        onDownloadSuccess={() => {
+          setWifiModalOpen(false);
+        }}
+      />
     </BaseLayout>
   );
 };
