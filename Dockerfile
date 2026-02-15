@@ -1,5 +1,6 @@
 # Multi-stage build for optimized image size
 # Stage 1: Builder - Build React app with Vite
+# Updated: 2026-02-16 - Fixed API base URL configuration
 FROM node:20-alpine as builder
 
 WORKDIR /app
