@@ -31,6 +31,7 @@ function MapUpdater({ center }) {
  *
  * @param {Array} devices - Array of device objects from API
  * @param {string} height - CSS height value (default: '500px')
+ * @param {boolean} disableGeolocation - If true, centers on device location instead of user location (default: false)
  *
  * Future enhancements for real-time alerts:
  * - WebSocket integration for live device status updates
@@ -38,7 +39,7 @@ function MapUpdater({ center }) {
  * - Notification system for alert messages
  * - Sound/visual alerts for critical events
  */
-function DeviceMap({ devices, height = '500px' }) {
+function DeviceMap({ devices, height = '500px', disableGeolocation = false }) {
   // Access the API key from environment variables
   const thunderforestApiKey = import.meta.env.VITE_THUNDERFOREST_API_KEY;
 
@@ -70,8 +71,16 @@ function DeviceMap({ devices, height = '500px' }) {
   /**
    * Get user's location on component mount
    * Falls back to device locations or default center if geolocation is unavailable
+   * Skip geolocation if disableGeolocation is true (e.g., for device detail pages)
    */
   useEffect(() => {
+    // If geolocation is disabled, center directly on device location
+    if (disableGeolocation) {
+      console.log('DeviceMap: Geolocation disabled, centering on device location');
+      setMapCenter(getMapCenter());
+      return;
+    }
+
     console.log('DeviceMap: Attempting to get user location...');
 
     if (!navigator.geolocation) {
@@ -96,7 +105,7 @@ function DeviceMap({ devices, height = '500px' }) {
         setMapCenter(getMapCenter());
       }
     );
-  }, []); // Run only once on mount
+  }, [disableGeolocation]); // Re-run if disableGeolocation changes
 
   /**
    * Calculate appropriate zoom level based on device count

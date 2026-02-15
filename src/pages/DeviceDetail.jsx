@@ -29,6 +29,7 @@ import {
 } from '@mui/icons-material';
 import { BaseLayout } from '../components/BaseLayout';
 import { WiFiConfigModal } from '../components/WiFiConfigModal';
+import DeviceMap from '../components/DeviceMap';
 import {
   useMyDevice,
   useRevokeDevice,
@@ -142,55 +143,132 @@ const DeviceDetail = () => {
   return (
     <BaseLayout>
       <Box sx={{ py: 3 }}>
-        {/* Header */}
-        <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
-          <Box display="flex" alignItems="center" gap={2}>
-            <IconButton onClick={() => navigate('/dashboard')}>
-              <ArrowBack />
-            </IconButton>
-            <Typography variant="h4">{device.name}</Typography>
-            <Chip label={device.status} color={getStatusColor(device.status)} />
-          </Box>
+        {/* Header with Back Button and Device Name */}
+        <Box display="flex" alignItems="center" gap={2} mb={2}>
+          <IconButton onClick={() => navigate('/dashboard')}>
+            <ArrowBack />
+          </IconButton>
+          <Typography variant="h4">{device.name}</Typography>
+          <Chip label={device.status} color={getStatusColor(device.status)} />
         </Box>
 
+        {/* Actions - Vertical Stack Below Device Name */}
+        <Box sx={{ mb: 3 }}>
+          <Stack direction="row" spacing={2} flexWrap="wrap">
+            {/* Generate Certificate - always available unless revoked */}
+            {device.status !== 'REVOKED' && (
+              <Button
+                variant="contained"
+                color="primary"
+                startIcon={<Refresh />}
+                onClick={handleGenerateCertificate}
+                disabled={generateCert.isPending}
+              >
+                {generateCert.isPending ? 'Generating...' : (device.certificate_pem ? 'Regenerate Certificate' : 'Generate Certificate')}
+              </Button>
+            )}
+
+            {/* Download Certificate - show only when certificate exists */}
+            {device.certificate_pem && (
+              <Tooltip title={!canDownload ? 'Cannot download for revoked devices' : ''}>
+                <span>
+                  <Button
+                    variant="outlined"
+                    startIcon={<Download />}
+                    onClick={handleDownloadCertificate}
+                    disabled={!canDownload}
+                  >
+                    Download Certificate
+                  </Button>
+                </span>
+              </Tooltip>
+            )}
+
+            {/* Download Private Key - show only when certificate exists */}
+            {device.certificate_pem && (
+              <Tooltip title={!canDownload ? 'Cannot download for revoked devices' : ''}>
+                <span>
+                  <Button
+                    variant="outlined"
+                    startIcon={<Key />}
+                    onClick={handleDownloadPrivateKey}
+                    disabled={!canDownload}
+                  >
+                    Download Private Key
+                  </Button>
+                </span>
+              </Tooltip>
+            )}
+
+            {/* Download Code Bundle - show only when certificate exists */}
+            {device.certificate_pem && (
+              <Tooltip title={!canDownload ? 'Cannot download for revoked devices' : ''}>
+                <span>
+                  <Button
+                    variant="outlined"
+                    startIcon={<Code />}
+                    onClick={handleDownloadCodeBundle}
+                    disabled={!canDownload}
+                  >
+                    Download Code Bundle
+                  </Button>
+                </span>
+              </Tooltip>
+            )}
+
+            {/* Revoke Device */}
+            <Tooltip title={!canRevoke ? 'Device already revoked' : ''}>
+              <span>
+                <Button
+                  variant="contained"
+                  color="error"
+                  startIcon={<Delete />}
+                  onClick={handleRevoke}
+                  disabled={!canRevoke}
+                >
+                  Revoke Device
+                </Button>
+              </span>
+            </Tooltip>
+          </Stack>
+        </Box>
+
+        {/* Main Content: Device Info (1/3) + Map (2/3) */}
         <Grid container spacing={3}>
-          {/* Main Information Card */}
-          <Grid item xs={12} md={8}>
-            <Card>
+          {/* Device Information Card - 1/3 width */}
+          <Grid item sx={{ height: '100%', width: '30%' }}>
+            <Card sx={{ height: '100%' }}>
               <CardContent>
                 <Typography variant="h6" gutterBottom>
                   Device Information
                 </Typography>
                 <Divider sx={{ mb: 2 }} />
 
-                <Stack spacing={3}>
+                <Stack spacing={2.5}>
                   {/* Description */}
                   {device.description && (
                     <Box>
-                      <Box display="flex" alignItems="center" gap={1} mb={0.5}>
-                      <Typography variant="subtitle2" color="text.secondary" sx={{ pl: 3.5 }} gutterBottom>
+                       <Box display="flex" alignItems="center" gap={1} mb={0.5}>
+                       <Memory fontSize="small" color="action" />
+                      <Typography variant="subtitle2" color="text.secondary" gutterBottom>
                         Description
                       </Typography>
                       </Box>
-                      <Box display="flex" alignItems="center" gap={1} mb={0.5}>
-                      <Typography variant="body1" sx={{ pl: 3.5 }}>{device.description}</Typography>
-                      </Box>
+                      <Typography variant="body2" display="flex" alignItems="center" gap={1} mb={0.5}>{device.description}</Typography>
                     </Box>
                   )}
 
                   {/* Device Type */}
                   <Box>
-                    <Box display="flex" alignItems="center" gap={1} mb={0.5}>
+                    <Box display="flex" alignItems="center">
                       <Memory fontSize="small" color="action" />
                       <Typography variant="subtitle2" color="text.secondary">
                         Device Type
                       </Typography>
                     </Box>
-                    <Box display="flex" alignItems="center" gap={1} mb={0.5}>
-                    <Typography variant="body1" sx={{ pl: 3.5 }}>
+                    <Typography variant="body2" display="flex" alignItems="center">
                       {device.device_type?.name || 'Not specified'}
                     </Typography>
-                    </Box>
                   </Box>
 
                   {/* Encryption Algorithm */}
@@ -201,11 +279,9 @@ const DeviceDetail = () => {
                         Encryption Algorithm
                       </Typography>
                     </Box>
-                    <Box display="flex" alignItems="center" gap={1} mb={0.5}>
-                    <Typography variant="body1" sx={{ pl: 3.5 }}>
+                    <Typography variant="body2" display="flex" alignItems="center">
                       {device.certificate_algorithm?.replace(/_/g, '-') || 'N/A'}
                     </Typography>
-                    </Box>
                   </Box>
 
                   {/* Location */}
@@ -217,16 +293,12 @@ const DeviceDetail = () => {
                           Location
                         </Typography>
                       </Box>
-                      <Box display="flex" alignItems="center" gap={1} mb={0.5}>
-                      <Typography variant="body1" sx={{ pl: 3.5 }}>
+                      <Typography variant="body2" display="flex" alignItems="center">
                         Lat: {device.latitude || 'N/A'}
                       </Typography>
-                      </Box>
-                      <Box display="flex" alignItems="center" gap={1} mb={0.5}>
-                      <Typography variant="body1" sx={{ pl: 3.5 }}>
-                          Long: {device.longitude || 'N/A'}
+                      <Typography variant="body2" display="flex" alignItems="center">
+                        Long: {device.longitude || 'N/A'}
                       </Typography>
-                      </Box>
                     </Box>
                   )}
 
@@ -238,13 +310,11 @@ const DeviceDetail = () => {
                         Created
                       </Typography>
                     </Box>
-                    <Box display="flex" alignItems="center" gap={1} mb={0.5}>
-                    <Typography variant="body1" sx={{ pl: 3.5 }}>
+                    <Typography variant="body2" display="flex" alignItems="center">
                       {device.created_at
                         ? format(new Date(device.created_at), 'PPpp')
                         : 'N/A'}
                     </Typography>
-                    </Box>
                   </Box>
 
                   {/* Certificate Expiry */}
@@ -256,11 +326,9 @@ const DeviceDetail = () => {
                           Certificate Expires
                         </Typography>
                       </Box>
-                      <Box display="flex" alignItems="center" gap={1} mb={0.5}>
-                      <Typography variant="body1" sx={{ pl: 3.5 }}>
+                      <Typography variant="body2" display="flex" alignItems="center">
                         {format(new Date(device.certificate_expiry), 'PPpp')}
                       </Typography>
-                      </Box>
                     </Box>
                   )}
                 </Stack>
@@ -268,104 +336,51 @@ const DeviceDetail = () => {
             </Card>
           </Grid>
 
-          {/* Actions Card */}
-          <Grid item xs={12} md={4}>
-            <Card>
-              <CardContent>
-                <Typography variant="h6" gutterBottom>
-                  Actions
-                </Typography>
-                <Divider sx={{ mb: 2 }} />
+          {/* Device Location Map - 2/3 width */}
+          <Grid item sx={{ height: '100%', width: '60%' }}>
+            {(device?.latitude && device?.longitude) ? (
+              <Card sx={{ height: '100%' }}>
+                <CardContent>
+                  <Typography variant="h6" gutterBottom>
+                    Device Location
+                  </Typography>
+                  <Divider sx={{ mb: 2 }} />
 
-                <Stack spacing={2}>
-                  {/* Generate Certificate - always available unless revoked */}
-                  {device.status !== 'REVOKED' && (
-                    <Button
-                      fullWidth
-                      variant="contained"
-                      color="primary"
-                      startIcon={<Refresh />}
-                      onClick={handleGenerateCertificate}
-                      disabled={generateCert.isPending}
-                    >
-                      {generateCert.isPending ? 'Generating...' : (device.certificate_pem ? 'Regenerate Certificate' : 'Generate Certificate')}
-                    </Button>
-                  )}
+                  <Box sx={{ height: '500px', borderRadius: 1, overflow: 'hidden' }}>
+                    <DeviceMap devices={[device]} height="100%" disableGeolocation={true} />
+                  </Box>
 
-                  {/* Download Certificate - show only when certificate exists */}
-                  {device.certificate_pem && (
-                    <Tooltip title={!canDownload ? 'Cannot download for revoked devices' : ''}>
-                      <span>
-                        <Button
-                          fullWidth
-                          variant="outlined"
-                          startIcon={<Download />}
-                          onClick={handleDownloadCertificate}
-                          disabled={!canDownload}
-                        >
-                          Download Certificate
-                        </Button>
-                      </span>
-                    </Tooltip>
-                  )}
+                  {/* Coordinates under map for easy copy/paste */}
+                  <Box sx={{ mt: 2, display: 'flex', gap: 3, justifyContent: 'center' }}>
+                    <Typography variant="body2" color="text.secondary">
+                      Latitude: {device.latitude}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      Longitude: {device.longitude}
+                    </Typography>
+                  </Box>
+                </CardContent>
+              </Card>
+            ) : (
+              <Card sx={{ height: '100%' }}>
+                <CardContent>
+                  <Typography variant="h6" gutterBottom>
+                    Device Location
+                  </Typography>
+                  <Divider sx={{ mb: 2 }} />
 
-                  {/* Download Private Key - show only when certificate exists */}
-                  {device.certificate_pem && (
-                    <Tooltip title={!canDownload ? 'Cannot download for revoked devices' : ''}>
-                      <span>
-                        <Button
-                          fullWidth
-                          variant="outlined"
-                          startIcon={<Key />}
-                          onClick={handleDownloadPrivateKey}
-                          disabled={!canDownload}
-                        >
-                          Download Private Key
-                        </Button>
-                      </span>
-                    </Tooltip>
-                  )}
-
-                  {/* Download Code Bundle - show only when certificate exists */}
-                  {device.certificate_pem && (
-                    <Tooltip title={!canDownload ? 'Cannot download for revoked devices' : ''}>
-                      <span>
-                        <Button
-                          fullWidth
-                          variant="outlined"
-                          startIcon={<Code />}
-                          onClick={handleDownloadCodeBundle}
-                          disabled={!canDownload}
-                        >
-                          Download Code Bundle
-                        </Button>
-                      </span>
-                    </Tooltip>
-                  )}
-
-                  <Divider />
-
-                  {/* Revoke Device */}
-                  <Tooltip title={!canRevoke ? 'Device already revoked' : ''}>
-                    <span>
-                      <Button
-                        fullWidth
-                        variant="contained"
-                        color="error"
-                        startIcon={<Delete />}
-                        onClick={handleRevoke}
-                        disabled={!canRevoke}
-                      >
-                        Revoke Device
-                      </Button>
-                    </span>
-                  </Tooltip>
-                </Stack>
-              </CardContent>
-            </Card>
+                  <Alert severity="info">
+                    No location data available for this device.
+                    Location can be set during device registration or updated later.
+                  </Alert>
+                </CardContent>
+              </Card>
+            )}
           </Grid>
         </Grid>
       </Box>
+
+      
 
       {/* WiFi Configuration Modal */}
       <WiFiConfigModal
