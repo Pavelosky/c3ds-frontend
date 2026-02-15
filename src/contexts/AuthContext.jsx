@@ -1,9 +1,14 @@
-import { createContext, useContext } from 'react';
+import { createContext, useContext, useEffect, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import apiClient from '../api/client';
 
 // Create a context to hold authentication-related data and methods
 const AuthContext = createContext(null);
+
+// Fetch CSRF token from Django
+const fetchCsrfToken = async () => {
+  await apiClient.get('/api/v1/auth/csrf/');
+};
 
 // Fetch the current user's data from the API
 const getCurrentUser = async () => {
@@ -25,6 +30,17 @@ const loginUser = async (credentials) => {
 // AuthProvider component to provide authentication-related data and methods to the app
 export const AuthProvider = ({ children }) => {
   const queryClient = useQueryClient(); // React Query client for managing server state
+  const [csrfReady, setCsrfReady] = useState(false);
+
+  // Fetch CSRF token on mount
+  useEffect(() => {
+    fetchCsrfToken()
+      .then(() => setCsrfReady(true))
+      .catch((err) => {
+        console.error('Failed to fetch CSRF token:', err);
+        setCsrfReady(true); // Proceed anyway
+      });
+  }, []);
 
   // Fetch the current user's data using React Query
   const { data: user, isLoading, isError } = useQuery({
@@ -33,6 +49,7 @@ export const AuthProvider = ({ children }) => {
     staleTime: 5 * 60 * 1000, // Cache the data for 5 minutes
     retry: false, // Disable retries on failure
     refetchOnWindowFocus: true,
+    enabled: csrfReady, // Only fetch user data after CSRF token is ready
   });
 
   // Function to log out the user and clear the cache
