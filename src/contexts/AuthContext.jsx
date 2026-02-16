@@ -5,10 +5,35 @@ import apiClient from '../api/client';
 // Create a context to hold authentication-related data and methods
 const AuthContext = createContext(null);
 
+let storedCsrfToken = null;
+
 // Fetch CSRF token from Django
+// const fetchCsrfToken = async () => {
+//   await apiClient.get('/api/v1/auth/csrf/');
+// };
+// Debugging code to ensure CSRF token is properly fetched and stored
 const fetchCsrfToken = async () => {
-  await apiClient.get('/api/v1/auth/csrf/');
+  const response = await apiClient.get('/api/v1/auth/csrf/');
+  // Try to get token from response header or cookie
+  const token = response.headers['x-csrftoken'] || getCsrfTokenFromCookie();
+  if (token) {
+    storedCsrfToken = token;
+  }
+  return response;
 };
+
+function getCsrfTokenFromCookie() {
+  const name = 'csrftoken';
+  const cookies = document.cookie.split(';');
+  for (let cookie of cookies) {
+    const trimmed = cookie.trim();
+    if (trimmed.startsWith(name + '=')) {
+      return trimmed.substring(name.length + 1);
+    }
+  }
+  return null;
+}
+
 
 // Fetch the current user's data from the API
 const getCurrentUser = async () => {

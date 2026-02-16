@@ -26,6 +26,23 @@ apiClient.interceptors.request.use((config) => {
   return config;
 });
 
+apiClient.interceptors.request.use((config) => {
+  if (['post', 'put', 'patch', 'delete'].includes(config.method)) {
+    // Try cookie first (works locally), then check for a stored token
+    let csrfToken = getCsrfToken();
+    
+    // If no token from cookie, we need another way to get it
+    if (!csrfToken) {
+      console.warn('No CSRF token found in cookies');
+    }
+    
+    if (csrfToken) {
+      config.headers['X-CSRFToken'] = csrfToken;
+    }
+  }
+  return config;
+});
+
 // Global response interceptor for authentication errors
 apiClient.interceptors.response.use(
   (response) => response,
