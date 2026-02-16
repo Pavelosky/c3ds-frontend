@@ -10,6 +10,10 @@ import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClient } from './config/queryClient'
 import { AuthProvider } from './contexts/AuthContext'
 
+// Railway debugging
+console.log('VITE_BACKEND_URL:', import.meta.env.VITE_BACKEND_URL);
+console.log('All env vars:', import.meta.env);
+
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <ThemeProvider theme={theme}>
