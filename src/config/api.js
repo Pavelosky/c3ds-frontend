@@ -1,7 +1,10 @@
 // API Configuration
 // Centralized endpoint definitions to avoid hardcoding URLs throughout the application
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api/v1';
+// const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api/v1';
+const API_BASE_URL = import.meta.env.VITE_BACKEND_URL 
+  ? `${import.meta.env.VITE_BACKEND_URL}/api/v1`
+  : 'http://localhost:8000/api/v1';
 
 export const API_ENDPOINTS = {
   auth: {
