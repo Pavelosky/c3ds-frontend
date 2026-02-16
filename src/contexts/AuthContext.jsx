@@ -65,14 +65,25 @@ export const AuthProvider = ({ children }) => {
   };
 
   // Function to log in the user and refetch user data
+  // const login = async (credentials) => {
+  //   try {
+  //     await loginUser(credentials); // Call the API to log in the user
+  //     await queryClient.invalidateQueries({ queryKey: ['currentUser'] }); // Refetch user data
+  //     window.location.replace(window.location.origin + '/dashboard'); // Redirect to the dashboard
+  //   } catch (error) {
+  //     console.error('Login failed:', error); // Log the error for debugging
+  //     throw error; // Re-throw the error to handle it elsewhere if needed
+  //   }
+  // };
+
   const login = async (credentials) => {
     try {
-      await loginUser(credentials); // Call the API to log in the user
-      await queryClient.invalidateQueries({ queryKey: ['currentUser'] }); // Refetch user data
-      window.location.replace(window.location.origin + '/dashboard'); // Redirect to the dashboard
+      const userData = await loginUser(credentials);
+      queryClient.setQueryData(['currentUser'], userData);
+      window.location.replace(window.location.origin + '/dashboard');
     } catch (error) {
-      console.error('Login failed:', error); // Log the error for debugging
-      throw error; // Re-throw the error to handle it elsewhere if needed
+      console.error('Login failed:', error);
+      throw error;
     }
   };
 
