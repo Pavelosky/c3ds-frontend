@@ -13,6 +13,19 @@ const apiClient = axios.create({
   },
 });
 
+// Request interceptor to add CSRF token
+apiClient.interceptors.request.use((config) => {
+  if (['post', 'put', 'patch', 'delete'].includes(config.method)) {
+    const csrfToken = getCsrfToken();
+    console.log('CSRF Token from cookie:', csrfToken); // Debug log
+    console.log('All cookies:', document.cookie); // Debug log
+    if (csrfToken) {
+      config.headers['X-CSRFToken'] = csrfToken;
+    }
+  }
+  return config;
+});
+
 // Global response interceptor for authentication errors
 apiClient.interceptors.response.use(
   (response) => response,
