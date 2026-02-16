@@ -1,8 +1,12 @@
 import axios from 'axios';
 import { API_ENDPOINTS, HTTP_STATUS } from '../config/api';
 
+// Get the backend URL from environment
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
+
 // Base axios instance configured for Django session authentication
 const apiClient = axios.create({
+  baseURL: BACKEND_URL,
   withCredentials: true, // Required for Django session cookies to be sent with requests
   headers: {
     'Content-Type': 'application/json',
