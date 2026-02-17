@@ -14,6 +14,8 @@ import {
   CircularProgress,
   IconButton,
   Tooltip,
+  Tabs,
+  Tab,
 } from '@mui/material';
 import {
   ArrowBack,
@@ -32,6 +34,7 @@ import { BaseLayout } from '../components/BaseLayout';
 import { WiFiConfigModal } from '../components/WiFiConfigModal';
 import { EditDeviceModal } from '../components/EditDeviceModal';
 import DeviceMap from '../components/DeviceMap';
+import IntegrationGuide from '../components/IntegrationGuide';
 import {
   useMyDevice,
   useRevokeDevice,
@@ -50,6 +53,7 @@ const DeviceDetail = () => {
   const generateCert = useGenerateCertificate();
   const [wifiModalOpen, setWifiModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState(0);
 
   const handleGenerateCertificate = async () => {
     if (
@@ -221,180 +225,195 @@ const DeviceDetail = () => {
           </Stack>
         </Box>
 
-        {/* Main Content: Device Info (1/3) + Map (2/3) */}
-        <Grid container spacing={3}>
-          {/* Device Information Card - 1/3 width */}
-          <Grid item sx={{ height: '100%', width: '30%' }}>
-            <Card sx={{ height: '100%' }}>
-              <CardContent>
-                <Typography variant="h6" gutterBottom>
-                  Device Information
-                </Typography>
-                <Divider sx={{ mb: 2 }} />
+        {/* Tabs */}
+        <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
+          <Tabs value={activeTab} onChange={(_, newValue) => setActiveTab(newValue)}>
+            <Tab label="Device Info" />
+            <Tab label="Integration Guide" />
+          </Tabs>
+        </Box>
 
-                <Stack spacing={2.5}>
-                  {/* Description */}
-                    {device.description && (
-                    <Box>
-                      <Box display="flex" align="left" gap={1} mb={0.5}>
-                      <Memory fontSize="small" color="action" />
-                      <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-                        Description
-                      </Typography>
+        {/* Tab Panel: Device Info */}
+        {activeTab === 0 && (
+          <Grid container spacing={3}>
+            {/* Device Information Card - 1/3 width */}
+            <Grid item sx={{ height: '100%', width: '30%' }}>
+              <Card sx={{ height: '100%' }}>
+                <CardContent>
+                  <Typography variant="h6" gutterBottom>
+                    Device Information
+                  </Typography>
+                  <Divider sx={{ mb: 2 }} />
+
+                  <Stack spacing={2.5}>
+                    {/* Description */}
+                      {device.description && (
+                      <Box>
+                        <Box display="flex" align="left" gap={1} mb={0.5}>
+                        <Memory fontSize="small" color="action" />
+                        <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                          Description
+                        </Typography>
+                        </Box>
+                        <Typography variant="body2" align="left">{device.description}</Typography>
                       </Box>
-                      <Typography variant="body2" align="left">{device.description}</Typography>
-                    </Box>
-                    )}
+                      )}
 
-                    {/* Device Type */}
-                  <Box>
-                    <Box display="flex" align="left">
-                      <Memory fontSize="small" color="action" />
-                      <Typography variant="subtitle2" color="text.secondary">
-                        Device Type
-                      </Typography>
-                    </Box>
-                    <Typography variant="body2" display="flex" align="left">
-                      {device.device_type?.name || 'Not specified'}
-                    </Typography>
-                  </Box>
-
-                  {/* Encryption Algorithm */}
-                  <Box>
-                    <Box display="flex" align="left" gap={1} mb={0.5}>
-                      <Security fontSize="small" color="action" />
-                      <Typography variant="subtitle2" color="text.secondary">
-                        Encryption Algorithm
-                      </Typography>
-                    </Box>
-                    <Typography variant="body2" display="flex" align="left">
-                      {device.certificate_algorithm?.replace(/_/g, '-') || 'N/A'}
-                    </Typography>
-                  </Box>
-
-                  {/* Location */}
-                  {(device.latitude || device.longitude) && (
+                      {/* Device Type */}
                     <Box>
-                      <Box display="flex" align="left" gap={1} mb={0.5}>
-                        <LocationOn fontSize="small" color="action" />
+                      <Box display="flex" align="left">
+                        <Memory fontSize="small" color="action" />
                         <Typography variant="subtitle2" color="text.secondary">
-                          Location
+                          Device Type
                         </Typography>
                       </Box>
                       <Typography variant="body2" display="flex" align="left">
-                        Lat: {device.latitude || 'N/A'}
-                      </Typography>
-                      <Typography variant="body2" display="flex" align="left">
-                        Long: {device.longitude || 'N/A'}
+                        {device.device_type?.name || 'Not specified'}
                       </Typography>
                     </Box>
-                  )}
 
-                  {/* Created Date */}
-                  <Box>
-                    <Box display="flex" align="left" gap={1} mb={0.5}>
-                      <CalendarToday fontSize="small" color="action" />
-                      <Typography variant="subtitle2" color="text.secondary">
-                        Created
-                      </Typography>
-                    </Box>
-                    <Typography variant="body2" display="flex" align="left">
-                      {device.created_at
-                        ? format(new Date(device.created_at), 'PPpp')
-                        : 'N/A'}
-                    </Typography>
-                  </Box>
-
-                  {/* Certificate Expiry */}
-                  {device.certificate_expiry && (
+                    {/* Encryption Algorithm */}
                     <Box>
                       <Box display="flex" align="left" gap={1} mb={0.5}>
                         <Security fontSize="small" color="action" />
                         <Typography variant="subtitle2" color="text.secondary">
-                          Certificate Expires
+                          Encryption Algorithm
                         </Typography>
                       </Box>
                       <Typography variant="body2" display="flex" align="left">
-                        {format(new Date(device.certificate_expiry), 'PPpp')}
+                        {device.certificate_algorithm?.replace(/_/g, '-') || 'N/A'}
                       </Typography>
                     </Box>
-                  )}
-                </Stack>
 
-                <Divider sx={{ my: 2 }} />
+                    {/* Location */}
+                    {(device.latitude || device.longitude) && (
+                      <Box>
+                        <Box display="flex" align="left" gap={1} mb={0.5}>
+                          <LocationOn fontSize="small" color="action" />
+                          <Typography variant="subtitle2" color="text.secondary">
+                            Location
+                          </Typography>
+                        </Box>
+                        <Typography variant="body2" display="flex" align="left">
+                          Lat: {device.latitude || 'N/A'}
+                        </Typography>
+                        <Typography variant="body2" display="flex" align="left">
+                          Long: {device.longitude || 'N/A'}
+                        </Typography>
+                      </Box>
+                    )}
 
-                {/* Edit Device Button */}
-                <Button
-                  fullWidth
-                  variant="outlined"
-                  startIcon={<Edit />}
-                  onClick={() => setEditModalOpen(true)}
-                  disabled={device.status === 'REVOKED'}
-                >
-                  Edit Device Information
-                </Button>
-                
-                <Divider sx={{ my: 2 }} />
-                
-                {/* Revoke Device */}
-                <Tooltip title={!canRevoke ? 'Device already revoked' : ''}>
-                    <Button
-                      fullWidth
-                      variant="contained"
-                      color="error"
-                      startIcon={<Delete />}
-                      onClick={handleRevoke}
-                      disabled={!canRevoke}
-                    >
-                      Revoke Device
-                    </Button>
-                </Tooltip>
-              </CardContent>
-            </Card>
-          </Grid>
+                    {/* Created Date */}
+                    <Box>
+                      <Box display="flex" align="left" gap={1} mb={0.5}>
+                        <CalendarToday fontSize="small" color="action" />
+                        <Typography variant="subtitle2" color="text.secondary">
+                          Created
+                        </Typography>
+                      </Box>
+                      <Typography variant="body2" display="flex" align="left">
+                        {device.created_at
+                          ? format(new Date(device.created_at), 'PPpp')
+                          : 'N/A'}
+                      </Typography>
+                    </Box>
 
-          {/* Device Location Map - 2/3 width */}
-          <Grid item sx={{ height: '100%', width: '60%' }}>
-            {(device?.latitude && device?.longitude) ? (
-              <Card sx={{ height: '100%' }}>
-                <CardContent>
-                  <Typography variant="h6" gutterBottom>
-                    Device Location
-                  </Typography>
-                  <Divider sx={{ mb: 2 }} />
+                    {/* Certificate Expiry */}
+                    {device.certificate_expiry && (
+                      <Box>
+                        <Box display="flex" align="left" gap={1} mb={0.5}>
+                          <Security fontSize="small" color="action" />
+                          <Typography variant="subtitle2" color="text.secondary">
+                            Certificate Expires
+                          </Typography>
+                        </Box>
+                        <Typography variant="body2" display="flex" align="left">
+                          {format(new Date(device.certificate_expiry), 'PPpp')}
+                        </Typography>
+                      </Box>
+                    )}
+                  </Stack>
 
-                  <Box sx={{ height: '500px', borderRadius: 1, overflow: 'hidden' }}>
-                    <DeviceMap devices={[device]} height="100%" disableGeolocation={true} />
-                  </Box>
+                  <Divider sx={{ my: 2 }} />
 
-                  {/* Coordinates under map for easy copy/paste */}
-                  <Box sx={{ mt: 2, display: 'flex', gap: 3, justifyContent: 'center' }}>
-                    <Typography variant="body2" color="text.secondary">
-                      Latitude: {device.latitude}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      Longitude: {device.longitude}
-                    </Typography>
-                  </Box>
+                  {/* Edit Device Button */}
+                  <Button
+                    fullWidth
+                    variant="outlined"
+                    startIcon={<Edit />}
+                    onClick={() => setEditModalOpen(true)}
+                    disabled={device.status === 'REVOKED'}
+                  >
+                    Edit Device Information
+                  </Button>
+
+                  <Divider sx={{ my: 2 }} />
+
+                  {/* Revoke Device */}
+                  <Tooltip title={!canRevoke ? 'Device already revoked' : ''}>
+                      <Button
+                        fullWidth
+                        variant="contained"
+                        color="error"
+                        startIcon={<Delete />}
+                        onClick={handleRevoke}
+                        disabled={!canRevoke}
+                      >
+                        Revoke Device
+                      </Button>
+                  </Tooltip>
                 </CardContent>
               </Card>
-            ) : (
-              <Card sx={{ height: '100%' }}>
-                <CardContent>
-                  <Typography variant="h6" gutterBottom>
-                    Device Location
-                  </Typography>
-                  <Divider sx={{ mb: 2 }} />
+            </Grid>
 
-                  <Alert severity="info">
-                    No location data available for this device.
-                    Location can be set during device registration or updated later.
-                  </Alert>
-                </CardContent>
-              </Card>
-            )}
+            {/* Device Location Map - 2/3 width */}
+            <Grid item sx={{ height: '100%', width: '60%' }}>
+              {(device?.latitude && device?.longitude) ? (
+                <Card sx={{ height: '100%' }}>
+                  <CardContent>
+                    <Typography variant="h6" gutterBottom>
+                      Device Location
+                    </Typography>
+                    <Divider sx={{ mb: 2 }} />
+
+                    <Box sx={{ height: '500px', borderRadius: 1, overflow: 'hidden' }}>
+                      <DeviceMap devices={[device]} height="100%" disableGeolocation={true} />
+                    </Box>
+
+                    {/* Coordinates under map for easy copy/paste */}
+                    <Box sx={{ mt: 2, display: 'flex', gap: 3, justifyContent: 'center' }}>
+                      <Typography variant="body2" color="text.secondary">
+                        Latitude: {device.latitude}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        Longitude: {device.longitude}
+                      </Typography>
+                    </Box>
+                  </CardContent>
+                </Card>
+              ) : (
+                <Card sx={{ height: '100%' }}>
+                  <CardContent>
+                    <Typography variant="h6" gutterBottom>
+                      Device Location
+                    </Typography>
+                    <Divider sx={{ mb: 2 }} />
+
+                    <Alert severity="info">
+                      No location data available for this device.
+                      Location can be set during device registration or updated later.
+                    </Alert>
+                  </CardContent>
+                </Card>
+              )}
+            </Grid>
           </Grid>
-        </Grid>
+        )}
+
+        {/* Tab Panel: Integration Guide */}
+        {activeTab === 1 && (
+          <IntegrationGuide />
+        )}
       </Box>
 
 
