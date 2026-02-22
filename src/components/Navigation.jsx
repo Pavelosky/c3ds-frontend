@@ -19,6 +19,7 @@ import {
   Logout,
   Dashboard,
   Public,
+  Info,
 } from '@mui/icons-material';
 import { Link as RouterLink } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
@@ -70,6 +71,10 @@ export const Navigation = () => {
             Public Dashboard
           </Button>
 
+          <Button color="inherit" component={RouterLink} to="/about" startIcon={<Info />}>
+            About
+          </Button>
+
           {isParticipant && (
             <Button color="inherit" component={RouterLink} to="/dashboard" startIcon={<Dashboard />}>
               My Devices
@@ -116,6 +121,10 @@ export const Navigation = () => {
             <MenuItem component={RouterLink} to="/" onClick={handleMobileMenuClose}>
               <ListItemIcon><Public /></ListItemIcon>
               <ListItemText>Public Dashboard</ListItemText>
+            </MenuItem>
+            <MenuItem component={RouterLink} to="/about" onClick={handleMobileMenuClose}>
+              <ListItemIcon><Info /></ListItemIcon>
+              <ListItemText>About</ListItemText>
             </MenuItem>
             {isParticipant && (
               <MenuItem component={RouterLink} to="/dashboard" onClick={handleMobileMenuClose}>

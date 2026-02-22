@@ -32,7 +32,7 @@ function MessageSidebar() {
   const [filters, setFilters] = useState({
     message_type: '', // Empty string = all types
     time_window: 'all', // Default to all messages
-    limit: 200, // Maximum allowed by backend to show more devices
+    limit: 1000, // Maximum allowed by backend to show more devices
   });
 
   // Selected message for detail view
