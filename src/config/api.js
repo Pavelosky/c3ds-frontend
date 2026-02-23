@@ -36,6 +36,23 @@ export const API_ENDPOINTS = {
   messages: {
     list: `${API_BASE_URL}/messages/`,
   },
+
+  admin: {
+    anomalyFlags: `${API_BASE_URL}/admin/anomaly-flags/`,
+    anomalyFlagDetail: (id) => `${API_BASE_URL}/admin/anomaly-flags/${id}/`,
+    resolveFlag: (id) => `${API_BASE_URL}/admin/anomaly-flags/${id}/resolve/`,
+    anomalySummary: `${API_BASE_URL}/admin/anomaly-flags/summary/`,
+
+    incidents: `${API_BASE_URL}/admin/incidents/`,
+    incidentDetail: (id) => `${API_BASE_URL}/admin/incidents/${id}/`,
+    addNote: (id) => `${API_BASE_URL}/admin/incidents/${id}/notes/`,
+
+    correlate: (messageId) => `${API_BASE_URL}/admin/events/${messageId}/correlate/`,
+    timeline: `${API_BASE_URL}/admin/messages/timeline/`,
+    heatmap: `${API_BASE_URL}/admin/heatmap/`,
+    compare: `${API_BASE_URL}/admin/devices/compare/`,
+    audit: (deviceId) => `${API_BASE_URL}/admin/devices/${deviceId}/audit/`,
+  },
 };
 
 

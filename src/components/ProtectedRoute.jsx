@@ -2,8 +2,8 @@ import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { CircularProgress, Box } from '@mui/material';
 
-export const ProtectedRoute = ({ children, requireParticipant = false }) => {
-  const { isAuthenticated, isLoading, isParticipant } = useAuth();
+export const ProtectedRoute = ({ children, requireParticipant = false, requireAdmin = false }) => {
+  const { isAuthenticated, isLoading, isParticipant, isAdmin } = useAuth();
   const location = useLocation();
 
   if (isLoading) {
@@ -16,6 +16,10 @@ export const ProtectedRoute = ({ children, requireParticipant = false }) => {
 
   if (!isAuthenticated) {
     return <Navigate to="/" state={{ from: location }} replace />;
+  }
+
+  if (requireAdmin && !isAdmin) {
+    return <Navigate to="/" replace />;
   }
 
   if (requireParticipant && !isParticipant) {

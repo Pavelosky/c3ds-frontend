@@ -99,4 +99,27 @@ export const messagesAPI = {
   getMessages: (params) => apiClient.get(API_ENDPOINTS.messages.list, { params }),
 };
 
+// Admin API (requires admin session)
+export const adminAPI = {
+  // Anomaly flags
+  getFlags: (params) => apiClient.get(API_ENDPOINTS.admin.anomalyFlags, { params }),
+  resolveFlag: (id) => apiClient.post(API_ENDPOINTS.admin.resolveFlag(id)),
+  getSummary: () => apiClient.get(API_ENDPOINTS.admin.anomalySummary),
+
+  // Incidents
+  getIncidents: (params) => apiClient.get(API_ENDPOINTS.admin.incidents, { params }),
+  getIncident: (id) => apiClient.get(API_ENDPOINTS.admin.incidentDetail(id)),
+  createIncident: (data) => apiClient.post(API_ENDPOINTS.admin.incidents, data),
+  updateIncident: (id, data) => apiClient.patch(API_ENDPOINTS.admin.incidentDetail(id), data),
+  deleteIncident: (id) => apiClient.delete(API_ENDPOINTS.admin.incidentDetail(id)),
+  addNote: (id, content) => apiClient.post(API_ENDPOINTS.admin.addNote(id), { content }),
+
+  // Investigation tools
+  correlateEvent: (messageId, params) => apiClient.get(API_ENDPOINTS.admin.correlate(messageId), { params }),
+  getTimeline: (params) => apiClient.get(API_ENDPOINTS.admin.timeline, { params }),
+  getHeatmap: (params) => apiClient.get(API_ENDPOINTS.admin.heatmap, { params }),
+  compareDevices: (params) => apiClient.get(API_ENDPOINTS.admin.compare, { params }),
+  getAuditTrail: (deviceId, params) => apiClient.get(API_ENDPOINTS.admin.audit(deviceId), { params }),
+};
+
 export default apiClient;

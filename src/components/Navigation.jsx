@@ -20,12 +20,13 @@ import {
   Dashboard,
   Public,
   Info,
+  AdminPanelSettings,
 } from '@mui/icons-material';
 import { Link as RouterLink } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 
 export const Navigation = () => {
-  const { user, isAuthenticated, isParticipant, logout } = useAuth();
+  const { user, isAuthenticated, isParticipant, isAdmin, logout } = useAuth();
   const [anchorEl, setAnchorEl] = useState(null);
   const [mobileMenuAnchor, setMobileMenuAnchor] = useState(null);
 
@@ -81,6 +82,18 @@ export const Navigation = () => {
             </Button>
           )}
 
+          {isAdmin && (
+            <Button
+              color="inherit"
+              component={RouterLink}
+              to="/c3ds-admin"
+              startIcon={<AdminPanelSettings />}
+              sx={{ bgcolor: 'rgba(255,255,255,0.12)', borderRadius: 1 }}
+            >
+              Admin
+            </Button>
+          )}
+
           {isAuthenticated ? (
             <>
               <IconButton color="inherit" onClick={handleUserMenuOpen} aria-label='User menu'>
@@ -130,6 +143,12 @@ export const Navigation = () => {
               <MenuItem component={RouterLink} to="/dashboard" onClick={handleMobileMenuClose}>
                 <ListItemIcon><Dashboard /></ListItemIcon>
                 <ListItemText>My Devices</ListItemText>
+              </MenuItem>
+            )}
+            {isAdmin && (
+              <MenuItem component={RouterLink} to="/c3ds-admin" onClick={handleMobileMenuClose}>
+                <ListItemIcon><AdminPanelSettings /></ListItemIcon>
+                <ListItemText>Admin Panel</ListItemText>
               </MenuItem>
             )}
             {isAuthenticated ? [
