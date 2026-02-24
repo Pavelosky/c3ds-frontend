@@ -7,7 +7,7 @@ export function useDevices() {
     queryKey: ['devices'],
     queryFn: async () => {
         const response = await devicesAPI.getDevices();
-        return response.data.results || [];
+        return response.data || [];
       },
   });
 }

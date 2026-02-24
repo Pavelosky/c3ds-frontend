@@ -145,6 +145,7 @@ const DeviceDetail = () => {
   }
 
   const canDownload = ['ACTIVE', 'PENDING', 'INACTIVE'].includes(device.status);
+  const downloadAvailable = device.is_certificate_available_for_download;
   const canRevoke = device.status !== 'REVOKED';
 
   return (
@@ -175,52 +176,54 @@ const DeviceDetail = () => {
               </Button>
             )}
 
-            {/* Download Certificate - show only when certificate exists */}
+            {/* Download buttons - only when a certificate exists */}
             {device.certificate_pem && (
-              <Tooltip title={!canDownload ? 'Cannot download for revoked devices' : ''}>
-                <span>
-                  <Button
-                    variant="outlined"
-                    startIcon={<Download />}
-                    onClick={handleDownloadCertificate}
-                    disabled={!canDownload}
-                  >
-                    Download Certificate
-                  </Button>
-                </span>
-              </Tooltip>
-            )}
-
-            {/* Download Private Key - show only when certificate exists */}
-            {device.certificate_pem && (
-              <Tooltip title={!canDownload ? 'Cannot download for revoked devices' : ''}>
-                <span>
-                  <Button
-                    variant="outlined"
-                    startIcon={<Key />}
-                    onClick={handleDownloadPrivateKey}
-                    disabled={!canDownload}
-                  >
-                    Download Private Key
-                  </Button>
-                </span>
-              </Tooltip>
-            )}
-
-            {/* Download Code Bundle - show only when certificate exists */}
-            {device.certificate_pem && (
-              <Tooltip title={!canDownload ? 'Cannot download for revoked devices' : ''}>
-                <span>
-                  <Button
-                    variant="outlined"
-                    startIcon={<Code />}
-                    onClick={handleDownloadCodeBundle}
-                    disabled={!canDownload}
-                  >
-                    Download Code Bundle
-                  </Button>
-                </span>
-              </Tooltip>
+              downloadAvailable ? (
+                <>
+                  <Tooltip title={!canDownload ? 'Cannot download for revoked devices' : ''}>
+                    <span>
+                      <Button
+                        variant="outlined"
+                        startIcon={<Download />}
+                        onClick={handleDownloadCertificate}
+                        disabled={!canDownload}
+                      >
+                        Download Certificate
+                      </Button>
+                    </span>
+                  </Tooltip>
+                  <Tooltip title={!canDownload ? 'Cannot download for revoked devices' : ''}>
+                    <span>
+                      <Button
+                        variant="outlined"
+                        startIcon={<Key />}
+                        onClick={handleDownloadPrivateKey}
+                        disabled={!canDownload}
+                      >
+                        Download Private Key
+                      </Button>
+                    </span>
+                  </Tooltip>
+                  <Tooltip title={!canDownload ? 'Cannot download for revoked devices' : ''}>
+                    <span>
+                      <Button
+                        variant="outlined"
+                        startIcon={<Code />}
+                        onClick={handleDownloadCodeBundle}
+                        disabled={!canDownload}
+                      >
+                        Download Code Bundle
+                      </Button>
+                    </span>
+                  </Tooltip>
+                </>
+              ) : (
+                <Alert severity={device.status === 'REVOKED' ? 'error' : 'warning'} sx={{ flex: 1 }}>
+                  {device.status === 'REVOKED'
+                    ? 'This device has been revoked. Certificates can no longer be generated or downloaded.'
+                    : 'The 24-hour download window for this certificate has expired. Regenerate the certificate to download it again.'}
+                </Alert>
+              )
             )}
           </Stack>
         </Box>
@@ -229,6 +232,7 @@ const DeviceDetail = () => {
         <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
           <Tabs value={activeTab} onChange={(_, newValue) => setActiveTab(newValue)}>
             <Tab label="Device Info" />
+            <Tab label="Recent Messages" />
             <Tab label="Integration Guide" />
           </Tabs>
         </Box>
@@ -410,8 +414,50 @@ const DeviceDetail = () => {
           </Grid>
         )}
 
-        {/* Tab Panel: Integration Guide */}
+        {/* Tab Panel: Recent Messages */}
         {activeTab === 1 && (
+          <Card>
+            <CardContent>
+              <Typography variant="h6" gutterBottom>
+                Recent Messages
+              </Typography>
+              <Divider sx={{ mb: 2 }} />
+              {device.recent_messages?.length > 0 ? (
+                <Stack spacing={2}>
+                  {device.recent_messages.map((msg) => (
+                    <Box
+                      key={msg.id}
+                      sx={{ p: 1.5, border: '1px solid', borderColor: 'divider', borderRadius: 1 }}
+                    >
+                      <Box display="flex" justifyContent="space-between" mb={0.5}>
+                        <Chip label={msg.message_type} size="small" />
+                        <Typography variant="caption" color="text.secondary">
+                          {format(new Date(msg.timestamp), 'PPpp')}
+                        </Typography>
+                      </Box>
+                      <Typography
+                        variant="body2"
+                        sx={{ fontFamily: 'monospace', color: 'text.secondary' }}
+                      >
+                        {msg.data_preview}
+                      </Typography>
+                      {msg.confidence !== null && (
+                        <Typography variant="caption" color="text.secondary">
+                          Confidence: {(msg.confidence * 100).toFixed(1)}%
+                        </Typography>
+                      )}
+                    </Box>
+                  ))}
+                </Stack>
+              ) : (
+                <Alert severity="info">No messages received from this device yet.</Alert>
+              )}
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Tab Panel: Integration Guide */}
+        {activeTab === 2 && (
           <IntegrationGuide />
         )}
       </Box>
