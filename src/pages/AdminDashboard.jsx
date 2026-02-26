@@ -231,8 +231,8 @@ function AnomalyFlagList({ initialFilter }) {
           <Alert severity="info">No flags match the current filters.</Alert>
         </Box>
       ) : (
-        <TableContainer>
-          <Table size="small">
+        <TableContainer sx={{ maxHeight: 480 }}>
+          <Table size="small" stickyHeader>
             <TableHead>
               <TableRow>
                 <TableCell>Severity</TableCell>
