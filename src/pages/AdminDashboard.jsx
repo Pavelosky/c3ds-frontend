@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
-  Box, Typography, Grid, Card, CardContent, CardHeader,
-  Chip, Button, Table, TableBody, TableCell, TableContainer,
-  TableHead, TableRow, Paper, Select, MenuItem, FormControl,
-  InputLabel, Alert, CircularProgress, Divider, Tooltip,
+  Box, Typography, Card, CardHeader,
+  Button, Table, TableBody, TableCell, TableContainer,
+  TableHead, TableRow, FormControl,
+  Select, MenuItem, CircularProgress, Divider, Tooltip,
   IconButton, Collapse, Stack,
 } from '@mui/material';
 import {
@@ -12,136 +12,149 @@ import {
   Error as ErrorIcon, Info, Shield,
 } from '@mui/icons-material';
 import { Link as RouterLink } from 'react-router-dom';
-import { BaseLayout } from '../components/BaseLayout';
+import { Navigation } from '../components/Navigation';
+import AdminDeviceSidebar from '../components/AdminDeviceSidebar';
+import MessageRateGraph from '../components/MessageRateGraph';
+import ServerLoadPanel from '../components/ServerLoadPanel';
 import { adminAPI } from '../api/client';
 
 
-// ── Severity colours ──────────────────────────────────────────────────────────
+// ── Severity / type helpers ────────────────────────────────────────────────────
 
-const SEVERITY_COLOR = {
-  CRITICAL: 'error',
-  HIGH: 'error',
-  MEDIUM: 'warning',
-  LOW: 'info',
-};
-
-const SEVERITY_ICON = {
-  CRITICAL: <ErrorIcon fontSize="small" />,
-  HIGH: <ErrorIcon fontSize="small" />,
-  MEDIUM: <Warning fontSize="small" />,
-  LOW: <Info fontSize="small" />,
+const SEVERITY_CHIP_COLOR = {
+  CRITICAL: '#f44336',
+  HIGH: '#ff5722',
+  MEDIUM: '#ff9800',
+  LOW: '#2196f3',
 };
 
 const FLAG_TYPE_LABEL = {
-  DETECTION_RATE_SPIKE: 'Detection Rate Spike',
+  DETECTION_RATE_SPIKE: 'Rate Spike',
   SILENT_DEVICE: 'Silent Device',
-  AUTH_UNKNOWN_IP: 'Unknown IP Auth',
-  AUTH_MALFORMED_MESSAGE: 'Malformed Message',
+  AUTH_UNKNOWN_IP: 'Unknown IP',
+  AUTH_MALFORMED_MESSAGE: 'Malformed Msg',
 };
 
 const INCIDENT_STATUS_COLOR = {
-  OPEN: 'error',
-  INVESTIGATING: 'warning',
-  RESOLVED: 'success',
-  ESCALATED: 'secondary',
+  OPEN: '#f44336',
+  INVESTIGATING: '#ff9800',
+  RESOLVED: '#00ff41',
+  ESCALATED: '#9c27b0',
+};
+
+// Shared SCADA card style
+const scadaCard = {
+  bgcolor: 'rgba(255,255,255,0.04)',
+  border: '1px solid rgba(255,255,255,0.10)',
+  borderRadius: 0,
+  height: '100%',
+  display: 'flex',
+  flexDirection: 'column',
+};
+
+const scadaHeader = {
+  pb: 0,
+  pt: 1,
+  px: 1.5,
+  '& .MuiCardHeader-title': { color: '#e0e0e0', fontFamily: 'monospace', fontSize: '0.7rem', letterSpacing: 1 },
+  '& .MuiCardHeader-action': { mt: 0, mr: 0 },
 };
 
 
-// ── Anomaly Summary Cards (US-09) ─────────────────────────────────────────────
+// ── Summary strip ──────────────────────────────────────────────────────────────
 
-function AnomalySummaryCards({ onFilterSelect }) {
-  const { data, isLoading } = useQuery({
+function SummaryStrip({ onFilterSelect }) {
+  const { data } = useQuery({
     queryKey: ['anomaly-summary'],
     queryFn: () => adminAPI.getSummary().then(r => r.data),
     refetchInterval: 30000,
   });
 
-  if (isLoading) return <CircularProgress size={24} />;
-  if (!data?.length) {
-    return (
-      <Alert icon={<CheckCircle />} severity="success">
-        No unresolved anomaly flags. Network is healthy.
-      </Alert>
-    );
-  }
+  const counts = { CRITICAL: 0, HIGH: 0, MEDIUM: 0, LOW: 0 };
+  (data || []).forEach(r => { counts[r.severity] = (counts[r.severity] || 0) + r.count; });
 
   return (
-    <Grid container spacing={2}>
-      {data.map((row) => (
-        <Grid item xs={12} sm={6} md={3} key={`${row.flag_type}-${row.severity}`}>
-          <Card
-            sx={{ cursor: 'pointer', border: '1px solid', borderColor: `${SEVERITY_COLOR[row.severity]}.main` }}
-            onClick={() => onFilterSelect({ flag_type: row.flag_type, severity: row.severity })}
-          >
-            <CardContent sx={{ pb: '12px !important' }}>
-              <Stack direction="row" justifyContent="space-between" alignItems="center">
-                <Typography variant="h4" fontWeight={700} color={`${SEVERITY_COLOR[row.severity]}.main`}>
-                  {row.count}
-                </Typography>
-                <Chip
-                  label={row.severity}
-                  color={SEVERITY_COLOR[row.severity]}
-                  size="small"
-                  icon={SEVERITY_ICON[row.severity]}
-                />
-              </Stack>
-              <Typography variant="body2" color="text.secondary" mt={0.5}>
-                {FLAG_TYPE_LABEL[row.flag_type] || row.flag_type}
-              </Typography>
-            </CardContent>
-          </Card>
-        </Grid>
+    <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+      {Object.entries(counts).map(([sev, count]) => (
+        <Box
+          key={sev}
+          onClick={() => onFilterSelect({ severity: sev })}
+          sx={{
+            cursor: 'pointer',
+            px: 1.5, py: 0.25,
+            border: `1px solid ${SEVERITY_CHIP_COLOR[sev]}`,
+            bgcolor: count > 0 ? `${SEVERITY_CHIP_COLOR[sev]}22` : 'transparent',
+            display: 'flex', alignItems: 'center', gap: 0.75,
+            '&:hover': { bgcolor: `${SEVERITY_CHIP_COLOR[sev]}33` },
+          }}
+        >
+          <Typography variant="h6" sx={{ color: SEVERITY_CHIP_COLOR[sev], fontFamily: 'monospace', fontWeight: 700, lineHeight: 1, fontSize: '1rem' }}>
+            {count}
+          </Typography>
+          <Typography variant="caption" sx={{ color: '#90a4ae', fontFamily: 'monospace', fontSize: '0.6rem' }}>
+            {sev}
+          </Typography>
+        </Box>
       ))}
-    </Grid>
+    </Box>
   );
 }
 
 
-// ── Flag Row (expandable) ─────────────────────────────────────────────────────
+// ── Flag row ───────────────────────────────────────────────────────────────────
 
 function FlagRow({ flag, onResolve, resolving }) {
   const [open, setOpen] = useState(false);
+  const color = SEVERITY_CHIP_COLOR[flag.severity] || '#90a4ae';
 
   return (
     <>
-      <TableRow hover>
-        <TableCell>
-          <Chip
-            label={flag.severity}
-            color={SEVERITY_COLOR[flag.severity] || 'default'}
-            size="small"
-          />
+      <TableRow hover sx={{ '& td': { borderColor: 'rgba(255,255,255,0.06)', py: 0.5 } }}>
+        <TableCell sx={{ width: 8, p: '0 4px' }}>
+          <Box sx={{ width: 3, height: 16, bgcolor: color }} />
         </TableCell>
-        <TableCell>{FLAG_TYPE_LABEL[flag.flag_type] || flag.flag_type}</TableCell>
-        <TableCell>{flag.device_name || '—'}</TableCell>
-        <TableCell>{new Date(flag.raised_at).toLocaleString()}</TableCell>
         <TableCell>
-          <Stack direction="row" spacing={1}>
-            <Tooltip title="Show detail">
-              <IconButton size="small" onClick={() => setOpen(o => !o)}>
-                {open ? <ExpandLess /> : <ExpandMore />}
+          <Typography variant="caption" sx={{ color, fontFamily: 'monospace', fontSize: '0.65rem' }}>{flag.severity}</Typography>
+        </TableCell>
+        <TableCell>
+          <Typography variant="caption" sx={{ color: '#e0e0e0', fontFamily: 'monospace', fontSize: '0.7rem' }}>
+            {FLAG_TYPE_LABEL[flag.flag_type] || flag.flag_type}
+          </Typography>
+        </TableCell>
+        <TableCell>
+          <Typography variant="caption" sx={{ color: '#90a4ae', fontFamily: 'monospace', fontSize: '0.7rem' }}>
+            {flag.device_name || '—'}
+          </Typography>
+        </TableCell>
+        <TableCell>
+          <Typography variant="caption" sx={{ color: '#546e7a', fontFamily: 'monospace', fontSize: '0.65rem' }}>
+            {new Date(flag.raised_at).toLocaleTimeString()}
+          </Typography>
+        </TableCell>
+        <TableCell>
+          <Stack direction="row" spacing={0.25}>
+            <Tooltip title="Detail">
+              <IconButton size="small" onClick={() => setOpen(o => !o)} sx={{ color: '#546e7a', p: 0.25 }}>
+                {open ? <ExpandLess sx={{ fontSize: 14 }} /> : <ExpandMore sx={{ fontSize: 14 }} />}
               </IconButton>
             </Tooltip>
-            <Button
-              size="small"
-              variant="outlined"
-              color="success"
-              startIcon={<CheckCircle />}
-              onClick={() => onResolve(flag.id)}
-              disabled={resolving}
-            >
-              Resolve
-            </Button>
+            <Tooltip title="Resolve">
+              <IconButton size="small" onClick={() => onResolve(flag.id)} disabled={resolving} sx={{ color: '#00ff41', p: 0.25 }}>
+                <CheckCircle sx={{ fontSize: 14 }} />
+              </IconButton>
+            </Tooltip>
           </Stack>
         </TableCell>
       </TableRow>
-      <TableRow>
-        <TableCell colSpan={5} sx={{ py: 0 }}>
+      <TableRow sx={{ '& td': { py: 0, borderColor: 'rgba(255,255,255,0.06)' } }}>
+        <TableCell colSpan={6} sx={{ py: 0 }}>
           <Collapse in={open}>
-            <Box sx={{ p: 2, bgcolor: 'action.hover' }}>
-              <Typography variant="body2" mb={1}>{flag.explanation}</Typography>
+            <Box sx={{ p: 1, bgcolor: 'rgba(0,0,0,0.3)' }}>
+              <Typography variant="caption" sx={{ color: '#90a4ae', fontFamily: 'monospace', fontSize: '0.65rem', display: 'block' }}>
+                {flag.explanation}
+              </Typography>
               {Object.keys(flag.detail || {}).length > 0 && (
-                <Typography variant="caption" component="pre" sx={{ fontFamily: 'monospace', whiteSpace: 'pre-wrap' }}>
+                <Typography variant="caption" component="pre" sx={{ color: '#546e7a', fontFamily: 'monospace', fontSize: '0.6rem', whiteSpace: 'pre-wrap', mt: 0.5 }}>
                   {JSON.stringify(flag.detail, null, 2)}
                 </Typography>
               )}
@@ -154,19 +167,22 @@ function FlagRow({ flag, onResolve, resolving }) {
 }
 
 
-// ── Anomaly Flag List (US-08) ─────────────────────────────────────────────────
+// ── Anomaly flag list ──────────────────────────────────────────────────────────
 
-function AnomalyFlagList({ initialFilter }) {
+function AnomalyFlagList({ deviceFilter, initialFilter, onClearDevice }) {
   const queryClient = useQueryClient();
   const [filters, setFilters] = useState(initialFilter || {});
   const [showResolved, setShowResolved] = useState(false);
 
+  const queryFilters = {
+    ...filters,
+    resolved: showResolved ? 'true' : 'false',
+    ...(deviceFilter ? { device: deviceFilter.id } : {}),
+  };
+
   const { data, isLoading } = useQuery({
-    queryKey: ['anomaly-flags', filters, showResolved],
-    queryFn: () => adminAPI.getFlags({
-      ...filters,
-      resolved: showResolved ? 'true' : 'false',
-    }).then(r => r.data),
+    queryKey: ['anomaly-flags', queryFilters],
+    queryFn: () => adminAPI.getFlags(queryFilters).then(r => r.data),
     refetchInterval: 30000,
   });
 
@@ -181,206 +197,241 @@ function AnomalyFlagList({ initialFilter }) {
   const flags = data?.results || data || [];
 
   return (
-    <Card>
+    <Card sx={scadaCard}>
       <CardHeader
-        title="Anomaly Flags"
-        subheader={showResolved ? 'Showing resolved flags' : 'Showing unresolved flags'}
+        sx={scadaHeader}
+        title={deviceFilter ? `FLAGS — ${deviceFilter.name}` : 'ANOMALY FLAGS'}
         action={
-          <Stack direction="row" spacing={1} alignItems="center">
-            <FormControl size="small" sx={{ minWidth: 160 }}>
-              <InputLabel>Type</InputLabel>
+          <Stack direction="row" spacing={0.5} alignItems="center">
+            {deviceFilter && (
+              <Button size="small" onClick={onClearDevice}
+                sx={{ color: '#f44336', fontSize: '0.6rem', fontFamily: 'monospace', minWidth: 0, p: '1px 4px' }}>
+                ✕
+              </Button>
+            )}
+            <FormControl size="small">
               <Select
                 value={filters.flag_type || ''}
-                label="Type"
-                onChange={(e) => setFilters(f => ({ ...f, flag_type: e.target.value || undefined }))}
+                onChange={e => setFilters(f => ({ ...f, flag_type: e.target.value || undefined }))}
+                displayEmpty
+                sx={{ color: '#90a4ae', fontSize: '0.65rem', fontFamily: 'monospace', height: 22,
+                  '& .MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(255,255,255,0.15)' },
+                  '& .MuiSvgIcon-root': { color: '#546e7a', fontSize: 14 } }}
               >
-                <MenuItem value="">All</MenuItem>
+                <MenuItem value="" sx={{ fontSize: '0.7rem', fontFamily: 'monospace' }}>All types</MenuItem>
                 {Object.entries(FLAG_TYPE_LABEL).map(([k, v]) => (
-                  <MenuItem key={k} value={k}>{v}</MenuItem>
+                  <MenuItem key={k} value={k} sx={{ fontSize: '0.7rem', fontFamily: 'monospace' }}>{v}</MenuItem>
                 ))}
               </Select>
             </FormControl>
-            <FormControl size="small" sx={{ minWidth: 120 }}>
-              <InputLabel>Severity</InputLabel>
-              <Select
-                value={filters.severity || ''}
-                label="Severity"
-                onChange={(e) => setFilters(f => ({ ...f, severity: e.target.value || undefined }))}
-              >
-                <MenuItem value="">All</MenuItem>
-                {['CRITICAL', 'HIGH', 'MEDIUM', 'LOW'].map(s => (
-                  <MenuItem key={s} value={s}>{s}</MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-            <Button
-              size="small"
-              variant={showResolved ? 'contained' : 'outlined'}
-              onClick={() => setShowResolved(v => !v)}
-            >
-              {showResolved ? 'Hide Resolved' : 'Show Resolved'}
+            <Button size="small" onClick={() => setShowResolved(v => !v)}
+              sx={{ color: showResolved ? '#00ff41' : '#546e7a', fontSize: '0.6rem', fontFamily: 'monospace', minWidth: 0, p: '1px 6px',
+                border: '1px solid', borderColor: showResolved ? '#00ff41' : 'rgba(255,255,255,0.12)' }}>
+              {showResolved ? 'RESOLVED' : 'ACTIVE'}
             </Button>
           </Stack>
         }
       />
-      <Divider />
-      {isLoading ? (
-        <Box p={3} textAlign="center"><CircularProgress /></Box>
-      ) : flags.length === 0 ? (
-        <Box p={3}>
-          <Alert severity="info">No flags match the current filters.</Alert>
-        </Box>
-      ) : (
-        <TableContainer sx={{ maxHeight: 480 }}>
-          <Table size="small" stickyHeader>
-            <TableHead>
-              <TableRow>
-                <TableCell>Severity</TableCell>
-                <TableCell>Type</TableCell>
-                <TableCell>Device</TableCell>
-                <TableCell>Raised</TableCell>
-                <TableCell>Actions</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {flags.map(flag => (
-                <FlagRow
-                  key={flag.id}
-                  flag={flag}
-                  onResolve={(id) => resolveMutation.mutate(id)}
-                  resolving={resolveMutation.isPending}
-                />
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
-      )}
+      <Divider sx={{ borderColor: 'rgba(255,255,255,0.08)' }} />
+      <Box sx={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+        {isLoading ? (
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 1 }}>
+            <CircularProgress size={20} sx={{ color: '#00ff41' }} />
+          </Box>
+        ) : flags.length === 0 ? (
+          <Box sx={{ p: 2 }}>
+            <Typography variant="caption" sx={{ color: '#546e7a', fontFamily: 'monospace' }}>
+              {showResolved ? 'No resolved flags.' : 'No active flags. Network nominal.'}
+            </Typography>
+          </Box>
+        ) : (
+          <TableContainer sx={{ flex: 1, overflow: 'auto' }}>
+            <Table size="small" stickyHeader>
+              <TableHead>
+                <TableRow>
+                  {['', 'SEV', 'TYPE', 'DEVICE', 'TIME', ''].map((h, i) => (
+                    <TableCell key={i} sx={{ bgcolor: '#0d1226', color: '#546e7a', fontFamily: 'monospace', fontSize: '0.6rem', letterSpacing: 1, borderColor: 'rgba(255,255,255,0.08)', py: 0.5, px: h === '' ? 0.5 : 1 }}>
+                      {h}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {flags.map(flag => (
+                  <FlagRow
+                    key={flag.id}
+                    flag={flag}
+                    onResolve={(id) => resolveMutation.mutate(id)}
+                    resolving={resolveMutation.isPending}
+                  />
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        )}
+      </Box>
     </Card>
   );
 }
 
 
-// ── Incident List (US-12 preview) ─────────────────────────────────────────────
+// ── Incident list ──────────────────────────────────────────────────────────────
 
 function IncidentList() {
   const { data, isLoading } = useQuery({
     queryKey: ['incidents'],
     queryFn: () => adminAPI.getIncidents().then(r => r.data),
+    refetchInterval: 60000,
   });
 
   const incidents = data?.results || data || [];
 
   return (
-    <Card>
+    <Card sx={scadaCard}>
       <CardHeader
-        title="Incidents"
+        sx={scadaHeader}
+        title="INCIDENTS"
         action={
-          <Button
-            size="small"
-            variant="contained"
-            component={RouterLink}
-            to="/c3ds-admin/incidents/new"
-          >
-            New Incident
+          <Button size="small" component={RouterLink} to="/c3ds-admin/incidents/new"
+            sx={{ color: '#00ff41', fontSize: '0.6rem', fontFamily: 'monospace', border: '1px solid #00ff41', p: '1px 8px', borderRadius: 0 }}>
+            + NEW
           </Button>
         }
       />
-      <Divider />
-      {isLoading ? (
-        <Box p={3} textAlign="center"><CircularProgress /></Box>
-      ) : incidents.length === 0 ? (
-        <Box p={3}><Alert severity="info">No incidents recorded.</Alert></Box>
-      ) : (
-        <TableContainer>
-          <Table size="small">
-            <TableHead>
-              <TableRow>
-                <TableCell>Title</TableCell>
-                <TableCell>Status</TableCell>
-                <TableCell>Severity</TableCell>
-                <TableCell>Flags</TableCell>
-                <TableCell>Created</TableCell>
-                <TableCell></TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {incidents.map(inc => (
-                <TableRow key={inc.id} hover>
-                  <TableCell>{inc.title}</TableCell>
-                  <TableCell>
-                    <Chip
-                      label={inc.incident_status}
-                      color={INCIDENT_STATUS_COLOR[inc.incident_status] || 'default'}
-                      size="small"
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <Chip label={inc.severity} color={SEVERITY_COLOR[inc.severity] || 'default'} size="small" />
-                  </TableCell>
-                  <TableCell>{inc.flag_count}</TableCell>
-                  <TableCell>{new Date(inc.created_at).toLocaleDateString()}</TableCell>
-                  <TableCell>
-                    <Button size="small" component={RouterLink} to={`/c3ds-admin/incidents/${inc.id}`}>
-                      View
-                    </Button>
-                  </TableCell>
+      <Divider sx={{ borderColor: 'rgba(255,255,255,0.08)' }} />
+      <Box sx={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+        {isLoading ? (
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 1 }}>
+            <CircularProgress size={20} sx={{ color: '#00ff41' }} />
+          </Box>
+        ) : incidents.length === 0 ? (
+          <Box sx={{ p: 2 }}>
+            <Typography variant="caption" sx={{ color: '#546e7a', fontFamily: 'monospace' }}>No incidents recorded.</Typography>
+          </Box>
+        ) : (
+          <TableContainer sx={{ flex: 1, overflow: 'auto' }}>
+            <Table size="small" stickyHeader>
+              <TableHead>
+                <TableRow>
+                  {['TITLE', 'STATUS', 'SEV', ''].map(h => (
+                    <TableCell key={h} sx={{ bgcolor: '#0d1226', color: '#546e7a', fontFamily: 'monospace', fontSize: '0.6rem', letterSpacing: 1, borderColor: 'rgba(255,255,255,0.08)', py: 0.5 }}>
+                      {h}
+                    </TableCell>
+                  ))}
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
-      )}
+              </TableHead>
+              <TableBody>
+                {incidents.map(inc => (
+                  <TableRow key={inc.id} hover sx={{ '& td': { borderColor: 'rgba(255,255,255,0.06)', py: 0.5 } }}>
+                    <TableCell>
+                      <Typography variant="caption" sx={{ color: '#e0e0e0', fontFamily: 'monospace', fontSize: '0.7rem' }}>
+                        {inc.title}
+                      </Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Typography variant="caption" sx={{ color: INCIDENT_STATUS_COLOR[inc.incident_status] || '#90a4ae', fontFamily: 'monospace', fontSize: '0.65rem' }}>
+                        {inc.incident_status}
+                      </Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Typography variant="caption" sx={{ color: SEVERITY_CHIP_COLOR[inc.severity] || '#90a4ae', fontFamily: 'monospace', fontSize: '0.65rem' }}>
+                        {inc.severity}
+                      </Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Button size="small" component={RouterLink} to={`/c3ds-admin/incidents/${inc.id}`}
+                        sx={{ color: '#546e7a', fontSize: '0.6rem', fontFamily: 'monospace', p: '1px 4px', minWidth: 0, '&:hover': { color: '#00ff41' } }}>
+                        VIEW
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        )}
+      </Box>
     </Card>
   );
 }
 
 
-// ── Main Admin Dashboard ──────────────────────────────────────────────────────
+// ── Main SCADA Admin Dashboard ─────────────────────────────────────────────────
 
 export default function AdminDashboard() {
+  const [deviceFilter, setDeviceFilter] = useState(null);
   const [flagFilter, setFlagFilter] = useState(null);
 
   return (
-    <BaseLayout>
-      <Box p={3}>
-        <Stack direction="row" alignItems="center" spacing={1} mb={3}>
-          <Shield color="primary" />
-          <Typography variant="h5" fontWeight={700}>Admin Dashboard</Typography>
-        </Stack>
+    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden', bgcolor: '#0a0e27' }}>
+      <Navigation />
 
-        {/* Quick navigation to investigation tools */}
-        <Stack direction="row" spacing={1} mb={3} flexWrap="wrap" useFlexGap>
-          <Button variant="outlined" size="small" component={RouterLink} to="/c3ds-admin/replay">
-            Event Replay
-          </Button>
-          <Button variant="outlined" size="small" component={RouterLink} to="/c3ds-admin/heatmap">
-            Detection Heatmap
-          </Button>
-          <Button variant="outlined" size="small" component={RouterLink} to="/c3ds-admin/compare">
-            Device Comparison
-          </Button>
-        </Stack>
+      <Box sx={{ flex: 1, display: 'flex', flexDirection: 'row', overflow: 'hidden', minHeight: 0 }}>
 
-        {/* US-09: Summary cards */}
-        <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-          UNRESOLVED ANOMALIES
-        </Typography>
-        <Box mb={3}>
-          <AnomalySummaryCards onFilterSelect={setFlagFilter} />
+        {/* Left: Device Sidebar */}
+        <AdminDeviceSidebar onFilterFlags={(id, name) => setDeviceFilter({ id, name })} />
+
+        {/* Right: Main Panel */}
+        <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', p: 1, gap: 1, minWidth: 0 }}>
+
+          {/* Top bar */}
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexShrink: 0, flexWrap: 'wrap' }}>
+            <Stack direction="row" alignItems="center" spacing={1}>
+            </Stack>
+            <Box sx={{display: 'flex', gap: 1 }}>
+              {[
+                { label: 'REPLAY', to: '/c3ds-admin/replay' },
+                { label: 'HEATMAP', to: '/c3ds-admin/heatmap' },
+                { label: 'COMPARE', to: '/c3ds-admin/compare' },
+              ].map(({ label, to }) => (
+                <Button key={label} size="small" component={RouterLink} to={to}
+                  sx={{
+                    color: '#e0e0e0', // Light gray text for better contrast on dark backgrounds
+                    fontSize: '0.7rem',
+                    fontFamily: 'monospace',
+                    border: '1px solid rgba(255, 255, 255, 0.3)', // Brighter border for visibility
+                    p: '4px 10px',
+                    borderRadius: 0,
+                    backgroundColor: 'rgba(255, 255, 255, 0.05)', // Background for better visibility
+                    '&:hover': {
+                      color: '#00ff41', // Bright green text on hover
+                      borderColor: '#00ff41', // Bright green border on hover
+                      backgroundColor: 'rgba(0, 255, 65, 0.1)', // Subtle green background on hover
+                    },
+                  }}>
+                  {label}
+                </Button>
+              ))}
+            </Box>
+            <SummaryStrip onFilterSelect={setFlagFilter} />
+          </Box>
+
+          {/* Middle row: graph + server load */}
+          <Box sx={{ display: 'flex', gap: 1, flexShrink: 0, height: '35%', minHeight: 0 }}>
+            <Box sx={{ flex: 1, ...scadaCard, p: 1.5, minWidth: 0 }}>
+              <MessageRateGraph />
+            </Box>
+            <Box sx={{ width: 190, flexShrink: 0, ...scadaCard, p: 1.5 }}>
+              <ServerLoadPanel />
+            </Box>
+          </Box>
+
+          {/* Bottom row: flags + incidents */}
+          <Box sx={{ flex: 1, display: 'flex', gap: 1, minHeight: 0, overflow: 'hidden' }}>
+            <Box sx={{ flex: 7, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+              <AnomalyFlagList
+                deviceFilter={deviceFilter}
+                initialFilter={flagFilter}
+                onClearDevice={() => setDeviceFilter(null)}
+              />
+            </Box>
+            <Box sx={{ flex: 5, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+              <IncidentList />
+            </Box>
+          </Box>
+
         </Box>
-
-        <Grid container spacing={3}>
-          {/* US-08: Flag list */}
-          <Grid item xs={12} lg={7}>
-            <AnomalyFlagList initialFilter={flagFilter} />
-          </Grid>
-
-          {/* US-12: Incidents */}
-          <Grid item xs={12} lg={5}>
-            <IncidentList />
-          </Grid>
-        </Grid>
       </Box>
-    </BaseLayout>
+    </Box>
   );
 }

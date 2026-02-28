@@ -52,6 +52,12 @@ export const API_ENDPOINTS = {
     heatmap: `${API_BASE_URL}/admin/heatmap/`,
     compare: `${API_BASE_URL}/admin/devices/compare/`,
     audit: (deviceId) => `${API_BASE_URL}/admin/devices/${deviceId}/audit/`,
+
+    // SCADA dashboard additions
+    allDevices: `${API_BASE_URL}/admin/devices/`,
+    setDeviceStatus: (deviceId) => `${API_BASE_URL}/admin/devices/${deviceId}/set-status/`,
+    messageRate: `${API_BASE_URL}/admin/messages/rate/`,
+    systemHealth: `${API_BASE_URL}/admin/system/health/`,
   },
 };
 

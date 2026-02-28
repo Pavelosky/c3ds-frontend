@@ -120,6 +120,12 @@ export const adminAPI = {
   getHeatmap: (params) => apiClient.get(API_ENDPOINTS.admin.heatmap, { params }),
   compareDevices: (params) => apiClient.get(API_ENDPOINTS.admin.compare, { params }),
   getAuditTrail: (deviceId, params) => apiClient.get(API_ENDPOINTS.admin.audit(deviceId), { params }),
+
+  // SCADA dashboard
+  getAllDevices: () => apiClient.get(API_ENDPOINTS.admin.allDevices),
+  setDeviceStatus: (deviceId, status) => apiClient.post(API_ENDPOINTS.admin.setDeviceStatus(deviceId), { status }),
+  getMessageRate: (params) => apiClient.get(API_ENDPOINTS.admin.messageRate, { params }),
+  getSystemHealth: () => apiClient.get(API_ENDPOINTS.admin.systemHealth),
 };
 
 export default apiClient;

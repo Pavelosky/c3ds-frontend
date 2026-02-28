@@ -2,17 +2,39 @@ import { useState } from 'react';
 import { useParams, Link as RouterLink } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
-  Box, Typography, Card, CardContent, CardHeader, Chip, Button,
-  TextField, Select, MenuItem, FormControl, InputLabel, Divider,
-  Stack, Alert, CircularProgress, List, ListItem, ListItemText,
-  Paper,
+  Box, Typography, Stack, CircularProgress, Select, MenuItem, FormControl,
 } from '@mui/material';
 import { ArrowBack, Add } from '@mui/icons-material';
-import { BaseLayout } from '../components/BaseLayout';
+import AdminPageLayout from '../components/AdminPageLayout';
 import { adminAPI } from '../api/client';
 
-const SEVERITY_COLOR = { CRITICAL: 'error', HIGH: 'error', MEDIUM: 'warning', LOW: 'info' };
-const STATUS_COLOR = { OPEN: 'error', INVESTIGATING: 'warning', RESOLVED: 'success', ESCALATED: 'secondary' };
+const SEVERITY_COLOR = { CRITICAL: '#f44336', HIGH: '#f44336', MEDIUM: '#ff9800', LOW: '#2196f3' };
+const STATUS_COLOR = { OPEN: '#f44336', INVESTIGATING: '#ff9800', RESOLVED: '#00ff41', ESCALATED: '#9c27b0' };
+
+const darkSelectSx = {
+  color: '#e0e0e0', fontFamily: 'monospace', fontSize: '0.8rem',
+  '& .MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(255,255,255,0.15)' },
+  '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(255,255,255,0.3)' },
+  '& .MuiSvgIcon-root': { color: '#90a4ae' },
+};
+
+function SectionLabel({ children }) {
+  return (
+    <Typography sx={{ color: '#00ff41', fontFamily: 'monospace', fontSize: '0.65rem', letterSpacing: 2, mb: 1.5 }}>
+      {children}
+    </Typography>
+  );
+}
+
+function ColorChip({ label, color }) {
+  return (
+    <Box sx={{ px: 0.75, py: 0.25, bgcolor: `${color}22`, border: `1px solid ${color}` }}>
+      <Typography sx={{ color, fontFamily: 'monospace', fontSize: '0.65rem', letterSpacing: 1 }}>
+        {label}
+      </Typography>
+    </Box>
+  );
+}
 
 export default function AdminIncidentDetail() {
   const { incidentId } = useParams();
@@ -37,120 +59,184 @@ export default function AdminIncidentDetail() {
     },
   });
 
-  if (isLoading) return <BaseLayout><Box p={3}><CircularProgress /></Box></BaseLayout>;
-  if (isError || !incident) return <BaseLayout><Box p={3}><Alert severity="error">Incident not found.</Alert></Box></BaseLayout>;
+  if (isLoading) return (
+    <AdminPageLayout>
+      <Box sx={{ display: 'flex', justifyContent: 'center', pt: 4 }}>
+        <CircularProgress size={24} sx={{ color: '#00ff41' }} />
+      </Box>
+    </AdminPageLayout>
+  );
+
+  if (isError || !incident) return (
+    <AdminPageLayout>
+      <Typography sx={{ color: '#f44336', fontFamily: 'monospace', fontSize: '0.8rem' }}>
+        Incident not found.
+      </Typography>
+    </AdminPageLayout>
+  );
+
+  const severityColor = SEVERITY_COLOR[incident.severity] || '#90a4ae';
+  const statusColor = STATUS_COLOR[incident.incident_status] || '#90a4ae';
 
   return (
-    <BaseLayout>
-      <Box p={3} maxWidth={900} mx="auto">
-        <Button startIcon={<ArrowBack />} component={RouterLink} to="/c3ds-admin" sx={{ mb: 2 }}>
-          Back to Admin
-        </Button>
+    <AdminPageLayout>
+      <Box maxWidth={900} mx="auto">
+        <Box
+          component={RouterLink}
+          to="/c3ds-admin"
+          sx={{
+            display: 'inline-flex', alignItems: 'center', gap: 0.5, mb: 2,
+            color: '#90a4ae', fontFamily: 'monospace', fontSize: '0.75rem',
+            textDecoration: 'none', letterSpacing: 1,
+            '&:hover': { color: '#00ff41' },
+          }}
+        >
+          <ArrowBack sx={{ fontSize: 16 }} /> BACK TO ADMIN
+        </Box>
 
         {/* Header */}
-        <Stack direction="row" justifyContent="space-between" alignItems="flex-start" mb={2}>
+        <Stack direction="row" justifyContent="space-between" alignItems="flex-start" mb={3}>
           <Box>
-            <Typography variant="h5" fontWeight={700}>{incident.title}</Typography>
-            <Stack direction="row" spacing={1} mt={1}>
-              <Chip label={incident.incident_status} color={STATUS_COLOR[incident.incident_status] || 'default'} />
-              <Chip label={incident.severity} color={SEVERITY_COLOR[incident.severity] || 'default'} />
-              <Typography variant="body2" color="text.secondary" alignSelf="center">
+            <Typography sx={{ color: '#e0e0e0', fontFamily: 'monospace', fontWeight: 700, fontSize: '1.1rem', letterSpacing: 1, mb: 1 }}>
+              {incident.title}
+            </Typography>
+            <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap">
+              <ColorChip label={incident.incident_status} color={statusColor} />
+              <ColorChip label={incident.severity} color={severityColor} />
+              <Typography sx={{ color: '#78909c', fontFamily: 'monospace', fontSize: '0.7rem' }}>
                 Created by {incident.created_by_username} · {new Date(incident.created_at).toLocaleString()}
               </Typography>
             </Stack>
           </Box>
           <FormControl size="small" sx={{ minWidth: 160 }}>
-            <InputLabel>Change Status</InputLabel>
             <Select
               value={incident.incident_status}
-              label="Change Status"
-              onChange={(e) => statusMutation.mutate(e.target.value)}
+              onChange={e => statusMutation.mutate(e.target.value)}
+              sx={darkSelectSx}
             >
               {['OPEN', 'INVESTIGATING', 'RESOLVED', 'ESCALATED'].map(s => (
-                <MenuItem key={s} value={s}>{s}</MenuItem>
+                <MenuItem key={s} value={s} sx={{ fontFamily: 'monospace', fontSize: '0.8rem', color: STATUS_COLOR[s] || '#e0e0e0' }}>
+                  {s}
+                </MenuItem>
               ))}
             </Select>
           </FormControl>
         </Stack>
 
         {incident.description && (
-          <Typography variant="body1" mb={3} color="text.secondary">{incident.description}</Typography>
+          <Typography sx={{ color: '#90a4ae', fontFamily: 'monospace', fontSize: '0.85rem', mb: 3 }}>
+            {incident.description}
+          </Typography>
         )}
 
-        <Stack spacing={3}>
+        <Stack spacing={2}>
           {/* Linked anomaly flags */}
-          <Card>
-            <CardHeader title={`Linked Anomaly Flags (${incident.linked_flags?.length || 0})`} />
-            <Divider />
-            <CardContent>
-              {incident.linked_flags?.length === 0 ? (
-                <Typography variant="body2" color="text.secondary">No flags linked.</Typography>
-              ) : (
-                <Stack spacing={1}>
-                  {incident.linked_flags?.map(flag => (
-                    <Paper key={flag.id} variant="outlined" sx={{ p: 1.5 }}>
-                      <Stack direction="row" spacing={1} alignItems="center">
-                        <Chip label={flag.severity} color={SEVERITY_COLOR[flag.severity] || 'default'} size="small" />
-                        <Chip label={flag.flag_type} size="small" variant="outlined" />
-                        <Typography variant="body2">{flag.device_name || 'Network'}</Typography>
-                        <Typography variant="caption" color="text.secondary">
+          <Box sx={{ p: 2, bgcolor: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.10)' }}>
+            <SectionLabel>LINKED ANOMALY FLAGS ({incident.linked_flags?.length || 0})</SectionLabel>
+            {incident.linked_flags?.length === 0 ? (
+              <Typography sx={{ color: '#546e7a', fontFamily: 'monospace', fontSize: '0.8rem' }}>No flags linked.</Typography>
+            ) : (
+              <Stack spacing={1}>
+                {incident.linked_flags?.map(flag => {
+                  const fc = SEVERITY_COLOR[flag.severity] || '#90a4ae';
+                  return (
+                    <Box
+                      key={flag.id}
+                      sx={{
+                        p: 1.5,
+                        bgcolor: 'rgba(255,255,255,0.03)',
+                        border: '1px solid rgba(255,255,255,0.08)',
+                        borderLeft: `3px solid ${fc}`,
+                      }}
+                    >
+                      <Stack direction="row" spacing={1} alignItems="center" mb={0.5} flexWrap="wrap">
+                        <ColorChip label={flag.severity} color={fc} />
+                        <Box sx={{ px: 0.75, py: 0.25, border: '1px solid rgba(255,255,255,0.2)' }}>
+                          <Typography sx={{ color: '#90a4ae', fontFamily: 'monospace', fontSize: '0.65rem', letterSpacing: 1 }}>
+                            {flag.flag_type}
+                          </Typography>
+                        </Box>
+                        <Typography sx={{ color: '#e0e0e0', fontFamily: 'monospace', fontSize: '0.8rem' }}>
+                          {flag.device_name || 'Network'}
+                        </Typography>
+                        <Typography sx={{ color: '#78909c', fontFamily: 'monospace', fontSize: '0.7rem' }}>
                           {new Date(flag.raised_at).toLocaleString()}
                         </Typography>
                       </Stack>
-                      <Typography variant="body2" mt={0.5}>{flag.explanation}</Typography>
-                    </Paper>
-                  ))}
-                </Stack>
-              )}
-            </CardContent>
-          </Card>
+                      <Typography sx={{ color: '#90a4ae', fontFamily: 'monospace', fontSize: '0.75rem' }}>
+                        {flag.explanation}
+                      </Typography>
+                    </Box>
+                  );
+                })}
+              </Stack>
+            )}
+          </Box>
 
           {/* Investigation notes */}
-          <Card>
-            <CardHeader title="Investigation Notes" />
-            <Divider />
-            <CardContent>
-              {incident.notes?.length === 0 && (
-                <Typography variant="body2" color="text.secondary" mb={2}>
-                  No notes yet. Add the first note below.
-                </Typography>
-              )}
-              <List dense>
-                {incident.notes?.map(note => (
-                  <ListItem key={note.id} alignItems="flex-start" sx={{ px: 0 }}>
-                    <ListItemText
-                      primary={note.content}
-                      secondary={`${note.author_username || 'Unknown'} · ${new Date(note.created_at).toLocaleString()}`}
-                    />
-                  </ListItem>
-                ))}
-              </List>
-
-              {/* Add note */}
-              <Stack direction="row" spacing={1} mt={2} alignItems="flex-start">
-                <TextField
-                  fullWidth
-                  multiline
-                  minRows={2}
-                  placeholder="Add an investigation note..."
-                  value={noteText}
-                  onChange={(e) => setNoteText(e.target.value)}
-                  size="small"
-                />
-                <Button
-                  variant="contained"
-                  startIcon={<Add />}
-                  onClick={() => noteMutation.mutate(noteText)}
-                  disabled={!noteText.trim() || noteMutation.isPending}
-                  sx={{ whiteSpace: 'nowrap' }}
+          <Box sx={{ p: 2, bgcolor: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.10)' }}>
+            <SectionLabel>INVESTIGATION NOTES</SectionLabel>
+            {incident.notes?.length === 0 && (
+              <Typography sx={{ color: '#546e7a', fontFamily: 'monospace', fontSize: '0.8rem', mb: 2 }}>
+                No notes yet. Add the first note below.
+              </Typography>
+            )}
+            <Stack spacing={1} mb={2}>
+              {incident.notes?.map(note => (
+                <Box
+                  key={note.id}
+                  sx={{ p: 1.5, bgcolor: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderLeft: '3px solid rgba(255,255,255,0.2)' }}
                 >
-                  Add Note
-                </Button>
-              </Stack>
-            </CardContent>
-          </Card>
+                  <Typography sx={{ color: '#e0e0e0', fontFamily: 'monospace', fontSize: '0.8rem', mb: 0.25 }}>
+                    {note.content}
+                  </Typography>
+                  <Typography sx={{ color: '#78909c', fontFamily: 'monospace', fontSize: '0.7rem' }}>
+                    {note.author_username || 'Unknown'} · {new Date(note.created_at).toLocaleString()}
+                  </Typography>
+                </Box>
+              ))}
+            </Stack>
+
+            {/* Add note */}
+            <Stack direction="row" spacing={1} alignItems="flex-start">
+              <Box
+                component="textarea"
+                placeholder="Add an investigation note..."
+                value={noteText}
+                onChange={e => setNoteText(e.target.value)}
+                rows={3}
+                style={{
+                  flex: 1,
+                  background: 'rgba(255,255,255,0.06)',
+                  color: '#e0e0e0',
+                  border: '1px solid rgba(255,255,255,0.15)',
+                  borderRadius: 4,
+                  padding: '8px',
+                  fontSize: '0.8rem',
+                  fontFamily: 'monospace',
+                  resize: 'vertical',
+                  outline: 'none',
+                }}
+              />
+              <Box
+                component="button"
+                onClick={() => noteMutation.mutate(noteText)}
+                disabled={!noteText.trim() || noteMutation.isPending}
+                sx={{
+                  px: 1.5, py: 1, cursor: 'pointer', bgcolor: 'transparent',
+                  border: '1px solid #00ff41', color: '#00ff41',
+                  fontFamily: 'monospace', fontSize: '0.75rem', letterSpacing: 1,
+                  display: 'flex', alignItems: 'center', gap: 0.5, whiteSpace: 'nowrap',
+                  '&:hover': { bgcolor: 'rgba(0,255,65,0.1)' },
+                  '&:disabled': { borderColor: '#546e7a', color: '#546e7a', cursor: 'not-allowed' },
+                }}
+              >
+                <Add sx={{ fontSize: 16 }} /> ADD NOTE
+              </Box>
+            </Stack>
+          </Box>
         </Stack>
       </Box>
-    </BaseLayout>
+    </AdminPageLayout>
   );
 }

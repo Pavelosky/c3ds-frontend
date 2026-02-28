@@ -9,6 +9,7 @@ import Register from './pages/Register';
 import About from './pages/About';
 import AdminDashboard from './pages/AdminDashboard';
 import AdminIncidentDetail from './pages/AdminIncidentDetail';
+import AdminIncidentCreate from './pages/AdminIncidentCreate';
 import AdminEventReplay from './pages/AdminEventReplay';
 import AdminHeatmap from './pages/AdminHeatmap';
 import AdminDeviceComparison from './pages/AdminDeviceComparison';
@@ -38,6 +39,11 @@ function App() {
       <Route path="/c3ds-admin" element={
         <ProtectedRoute requireAdmin={true}>
           <AdminDashboard />
+        </ProtectedRoute>
+      } />
+      <Route path="/c3ds-admin/incidents/new" element={
+        <ProtectedRoute requireAdmin={true}>
+          <AdminIncidentCreate />
         </ProtectedRoute>
       } />
       <Route path="/c3ds-admin/incidents/:incidentId" element={
