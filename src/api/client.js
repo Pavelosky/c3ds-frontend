@@ -126,6 +126,11 @@ export const adminAPI = {
   setDeviceStatus: (deviceId, status) => apiClient.post(API_ENDPOINTS.admin.setDeviceStatus(deviceId), { status }),
   getMessageRate: (params) => apiClient.get(API_ENDPOINTS.admin.messageRate, { params }),
   getSystemHealth: () => apiClient.get(API_ENDPOINTS.admin.systemHealth),
+
+  // Command queue
+  getCommandQueue: (params) => apiClient.get(API_ENDPOINTS.admin.commandQueue, { params }),
+  getDeviceCommands: (deviceId, params) => apiClient.get(API_ENDPOINTS.admin.deviceCommands(deviceId), { params }),
+  dispatchCommand: (deviceId, data) => apiClient.post(API_ENDPOINTS.admin.deviceCommands(deviceId), data),
 };
 
 export default apiClient;

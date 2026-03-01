@@ -5,7 +5,7 @@ import {
   Tooltip, Menu, MenuItem, Divider,
 } from '@mui/material';
 import {
-  FilterList, History, Circle,
+  FilterList, History, Circle, Terminal,
 } from '@mui/icons-material';
 import { Link as RouterLink } from 'react-router-dom';
 import { adminAPI } from '../api/client';
@@ -137,6 +137,18 @@ function DeviceTile({ device, onFilterFlags }) {
             sx={{ color: '#78909c', p: 0.25, '&:hover': { color: '#00ff41' } }}
           >
             <History sx={{ fontSize: 14 }} />
+          </IconButton>
+        </Tooltip>
+
+        {/* Dispatch command */}
+        <Tooltip title="Dispatch command">
+          <IconButton
+            size="small"
+            component={RouterLink}
+            to={`/c3ds-admin/commands?device_id=${device.id}`}
+            sx={{ color: '#78909c', p: 0.25, '&:hover': { color: '#00ff41' } }}
+          >
+            <Terminal sx={{ fontSize: 14 }} />
           </IconButton>
         </Tooltip>
         </Box>

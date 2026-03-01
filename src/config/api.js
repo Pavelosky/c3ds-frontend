@@ -58,6 +58,10 @@ export const API_ENDPOINTS = {
     setDeviceStatus: (deviceId) => `${API_BASE_URL}/admin/devices/${deviceId}/set-status/`,
     messageRate: `${API_BASE_URL}/admin/messages/rate/`,
     systemHealth: `${API_BASE_URL}/admin/system/health/`,
+
+    // Command queue
+    deviceCommands: (deviceId) => `${API_BASE_URL}/admin/devices/${deviceId}/commands/`,
+    commandQueue: `${API_BASE_URL}/admin/commands/`,
   },
 };
 
