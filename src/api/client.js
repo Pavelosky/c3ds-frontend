@@ -131,6 +131,14 @@ export const adminAPI = {
   getCommandQueue: (params) => apiClient.get(API_ENDPOINTS.admin.commandQueue, { params }),
   getDeviceCommands: (deviceId, params) => apiClient.get(API_ENDPOINTS.admin.deviceCommands(deviceId), { params }),
   dispatchCommand: (deviceId, data) => apiClient.post(API_ENDPOINTS.admin.deviceCommands(deviceId), data),
+
+  // Detection policies
+  getPolicies: () => apiClient.get(API_ENDPOINTS.admin.policies),
+  createPolicy: (data) => apiClient.post(API_ENDPOINTS.admin.policies, data),
+  updatePolicy: (id, data) => apiClient.patch(API_ENDPOINTS.admin.policyDetail(id), data),
+  deletePolicy: (id) => apiClient.delete(API_ENDPOINTS.admin.policyDetail(id)),
+  deletePolicyForce: (id) => apiClient.delete(API_ENDPOINTS.admin.policyDetail(id), { params: { confirm: 1 } }),
+  getPolicyTriggers: (id, params) => apiClient.get(API_ENDPOINTS.admin.policyTriggers(id), { params }),
 };
 
 export default apiClient;

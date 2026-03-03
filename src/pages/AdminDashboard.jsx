@@ -383,6 +383,8 @@ export default function AdminDashboard() {
                 { label: 'REPLAY', to: '/c3ds-admin/replay' },
                 { label: 'HEATMAP', to: '/c3ds-admin/heatmap' },
                 { label: 'COMPARE', to: '/c3ds-admin/compare' },
+                { label: 'COMMANDS', to: '/c3ds-admin/commands' },
+                { label: 'POLICIES', to: '/c3ds-admin/policies' },
               ].map(({ label, to }) => (
                 <Button key={label} size="small" component={RouterLink} to={to}
                   sx={{

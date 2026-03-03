@@ -62,6 +62,11 @@ export const API_ENDPOINTS = {
     // Command queue
     deviceCommands: (deviceId) => `${API_BASE_URL}/admin/devices/${deviceId}/commands/`,
     commandQueue: `${API_BASE_URL}/admin/commands/`,
+
+    // Detection policies
+    policies: `${API_BASE_URL}/admin/policies/`,
+    policyDetail: (id) => `${API_BASE_URL}/admin/policies/${id}/`,
+    policyTriggers: (id) => `${API_BASE_URL}/admin/policies/${id}/triggers/`,
   },
 };
 

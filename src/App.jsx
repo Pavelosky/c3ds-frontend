@@ -15,6 +15,7 @@ import AdminHeatmap from './pages/AdminHeatmap';
 import AdminDeviceComparison from './pages/AdminDeviceComparison';
 import AdminAuditTrail from './pages/AdminAuditTrail';
 import AdminCommandQueue from './pages/AdminCommandQueue';
+import AdminPolicies from './pages/AdminPolicies';
 import { ErrorBoundary } from './components/ErrorBoundary';
 
 function App() {
@@ -75,6 +76,11 @@ function App() {
       <Route path="/c3ds-admin/commands" element={
         <ProtectedRoute requireAdmin={true}>
           <AdminCommandQueue />
+        </ProtectedRoute>
+      } />
+      <Route path="/c3ds-admin/policies" element={
+        <ProtectedRoute requireAdmin={true}>
+          <AdminPolicies />
         </ProtectedRoute>
       } />
     </Routes>
