@@ -489,8 +489,8 @@ export default function AdminPolicies() {
   const devices = devicesData || [];
   const deviceTypesMap = {};
   devices.forEach(d => {
-    if (d.device_type && !deviceTypesMap[d.device_type]) {
-      deviceTypesMap[d.device_type] = { id: d.device_type, name: d.device_type_name || d.device_type };
+    if (d.device_type_id != null && !deviceTypesMap[d.device_type_id]) {
+      deviceTypesMap[d.device_type_id] = { id: d.device_type_id, name: d.device_type };
     }
   });
   const deviceTypes = Object.values(deviceTypesMap);

@@ -32,3 +32,4 @@ dist-ssr
 *.sqlite
 *.sqlite3
 *.db
+coverage/

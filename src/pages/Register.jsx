@@ -11,10 +11,9 @@ import {
   Typography,
   Link,
   FormControl,
-  FormLabel,
-  RadioGroup,
-  FormControlLabel,
-  Radio,
+  InputLabel,
+  Select,
+  MenuItem,
   FormHelperText,
 } from '@mui/material';
 import { BaseLayout } from '../components/BaseLayout';
@@ -28,7 +27,7 @@ export default function Register() {
     email: '',
     password1: '',
     password2: '',
-    user_type: 'NON_PARTICIPANT',
+    user_type: '',
   });
 
   const [loading, setLoading] = useState(false);
@@ -150,29 +149,23 @@ export default function Register() {
               />
 
               <FormControl
-                component="fieldset"
                 margin="normal"
                 fullWidth
+                required
                 error={!!fieldErrors.user_type}
                 disabled={loading}
               >
-                <FormLabel component="legend">Account Type</FormLabel>
-                <RadioGroup
+                <InputLabel id="user-type-label">Account Type</InputLabel>
+                <Select
+                  labelId="user-type-label"
                   name="user_type"
                   value={formData.user_type}
                   onChange={handleChange}
+                  label="Account Type"
                 >
-                  <FormControlLabel
-                    value="PARTICIPANT"
-                    control={<Radio />}
-                    label="System Participant - I want to add my sensor device"
-                  />
-                  <FormControlLabel
-                    value="NON_PARTICIPANT"
-                    control={<Radio />}
-                    label="Dashboard User - I only want to recieve notifications"
-                  />
-                </RadioGroup>
+                  <MenuItem value="PARTICIPANT">System Participant - I want to add my sensor device</MenuItem>
+                  <MenuItem value="NON_PARTICIPANT">Dashboard User - I only want to receive notifications</MenuItem>
+                </Select>
                 <FormHelperText>
                   {fieldErrors.user_type?.[0] || 'Select your role in the system'}
                 </FormHelperText>

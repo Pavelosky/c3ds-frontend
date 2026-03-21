@@ -7,18 +7,12 @@ import {
   PlayArrow, Pause, SkipNext, SkipPrevious, ArrowBack,
 } from '@mui/icons-material';
 import { Link as RouterLink } from 'react-router-dom';
-import { MapContainer, TileLayer, Marker, Popup, Circle } from 'react-leaflet';
-import L from 'leaflet';
+import { MapContainer, TileLayer, Popup, Circle } from 'react-leaflet';
 import AdminPageLayout from '../components/AdminPageLayout';
 import { adminAPI } from '../api/client';
+import DotMarker from '../components/DotMarker';
 
 import 'leaflet/dist/leaflet.css';
-delete L.Icon.Default.prototype._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png',
-  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
-  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
-});
 
 const DEFAULT_START = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString().slice(0, 16);
 const DEFAULT_END = new Date().toISOString().slice(0, 16);
@@ -274,9 +268,9 @@ export default function AdminEventReplay() {
           url="https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png"
         /> 
             {Object.entries(devicePositions).map(([id, pos]) => (
-              <Marker key={id} position={[pos.lat, pos.lng]}>
+              <DotMarker key={id} center={[pos.lat, pos.lng]}>
                 <Popup>{pos.name}</Popup>
-              </Marker>
+              </DotMarker>
             ))}
             {Object.values(latestByDevice).map(e => e.latitude && e.longitude && (
               <Circle

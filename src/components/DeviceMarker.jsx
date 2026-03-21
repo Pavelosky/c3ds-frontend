@@ -1,16 +1,7 @@
-import { Marker, Popup } from 'react-leaflet';
-import L from 'leaflet';
+import { Popup } from 'react-leaflet';
+import DotMarker from './DotMarker';
 import { Chip, Typography, Stack, Divider } from '@mui/material';
 import { format } from 'date-fns';
-
-// Fix Leaflet default icon issue with webpack/vite
-// This is a known issue where Leaflet cannot find its default icons when bundled
-delete L.Icon.Default.prototype._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
-  iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
-  shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
-});
 
 /**
  * Status color configuration
@@ -38,23 +29,10 @@ const STATUS_CONFIG = {
 function DeviceMarker({ device }) {
   const statusConfig = STATUS_CONFIG[device.status] || STATUS_CONFIG.INACTIVE;
 
-  /**
-   * Create custom marker icon based on device status
-   * Uses leaflet-color-markers CDN for pre-colored icons
-   */
-  const markerIcon = new L.Icon({
-    iconUrl: `https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-${statusConfig.markerColor}.png`,
-    shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
-    iconSize: [25, 41],
-    iconAnchor: [12, 41],
-    popupAnchor: [1, -34],
-    shadowSize: [41, 41]
-  });
-
   return (
-    <Marker
-      position={[parseFloat(device.latitude), parseFloat(device.longitude)]}
-      icon={markerIcon}
+    <DotMarker
+      center={[parseFloat(device.latitude), parseFloat(device.longitude)]}
+      color={statusConfig.markerColor}
     >
       <Popup maxWidth={320} className="tactical-popup">
         <Stack spacing={1.5} sx={{ p: 0.5 }}>
@@ -165,7 +143,7 @@ function DeviceMarker({ device }) {
           </Typography>
         </Stack>
       </Popup>
-    </Marker>
+    </DotMarker>
   );
 }
 

@@ -5,19 +5,13 @@ import {
 } from '@mui/material';
 import { ArrowBack } from '@mui/icons-material';
 import { Link as RouterLink } from 'react-router-dom';
-import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import 'leaflet.heat';
 import AdminPageLayout from '../components/AdminPageLayout';
 import { adminAPI } from '../api/client';
-
-delete L.Icon.Default.prototype._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png',
-  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
-  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
-});
+import DotMarker from '../components/DotMarker';
 
 const DEFAULT_START = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString().slice(0, 16);
 const DEFAULT_END = new Date().toISOString().slice(0, 16);
@@ -189,12 +183,12 @@ export default function AdminHeatmap() {
             />
             {points.length > 0 && <HeatLayer points={points} intensity={intensity} />}
             {showPins && points.map(p => (
-              <Marker key={p.device_id} position={[p.lat, p.lng]}>
+              <DotMarker key={p.device_id} center={[p.lat, p.lng]}>
                 <Popup>
                   <strong>{p.device_name}</strong><br />
                   {p.weight} events in window
                 </Popup>
-              </Marker>
+              </DotMarker>
             ))}
           </MapContainer>
         </Box>
